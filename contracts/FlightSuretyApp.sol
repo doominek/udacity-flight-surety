@@ -1,13 +1,14 @@
 pragma solidity ^0.5.16;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 import "./FlightSuretyAirlines.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
 /************************************************** */
-contract FlightSuretyApp is FlightSuretyAirlines {
+contract FlightSuretyApp is Ownable, FlightSuretyAirlines {
     using SafeMath for uint256; // Allow SafeMath functions to be called for all uint256 types (similar to "prototype" in Javascript)
 
     /********************************************************************************************/
@@ -21,8 +22,6 @@ contract FlightSuretyApp is FlightSuretyAirlines {
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-
-    address private contractOwner;          // Account used to deploy contract
 
     struct Flight {
         bool isRegistered;
@@ -49,25 +48,7 @@ contract FlightSuretyApp is FlightSuretyAirlines {
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
-    /**
-    * @dev Modifier that requires the "ContractOwner" account to be the function caller
-    */
-    modifier requireContractOwner()
-    {
-        require(msg.sender == contractOwner, "Caller is not contract owner");
-        _;
-    }
-
-    /********************************************************************************************/
-    /*                                       CONSTRUCTOR                                        */
-    /********************************************************************************************/
-
-    /**
-    * @dev Contract constructor
-    *
-    */
     constructor(address initialAirline) FlightSuretyAirlines(initialAirline) public {
-        contractOwner = msg.sender;
     }
 
     /********************************************************************************************/
@@ -187,11 +168,7 @@ contract FlightSuretyApp is FlightSuretyAirlines {
 
 
     // Register an oracle with the contract
-    function registerOracle
-                            (
-                            )
-                            external
-                            payable
+    function registerOracle() external payable onlyOwner
     {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
@@ -204,8 +181,7 @@ contract FlightSuretyApp is FlightSuretyAirlines {
                                     });
     }
 
-    function getMyIndexes
-                            (
+    function getMyIndexes(
                             )
                             view
                             external
