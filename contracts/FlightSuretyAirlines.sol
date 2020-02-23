@@ -10,8 +10,8 @@ contract AirlineRole {
 
     Roles.Role private airlineAccounts;
 
-    constructor () internal {
-        _addAirline(msg.sender);
+    constructor (address account) internal {
+        _addAirline(account);
     }
 
     modifier onlyAirline() {
@@ -44,8 +44,7 @@ contract AirlineRole {
 
 contract FlightSuretyAirlines is AirlineRole {
 
-    constructor(address initialAirline) public {
-        _addAirline(initialAirline);
+    constructor(address initialAirline) AirlineRole(initialAirline) public {
     }
 
     function registerAirline() external pure returns(bool success, uint256 votes)
