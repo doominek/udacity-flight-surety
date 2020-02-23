@@ -2,74 +2,20 @@ pragma solidity ^0.5.16;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
-contract FlightSuretyData is Ownable {
+contract FlightSuretyData is Ownable, Pausable {
     using SafeMath for uint256;
-
-    /********************************************************************************************/
-    /*                                       DATA VARIABLES                                     */
-    /********************************************************************************************/
-
-    bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-
-    /********************************************************************************************/
-    /*                                       EVENT DEFINITIONS                                  */
-    /********************************************************************************************/
-
 
     constructor() public {
     }
-
-    /**
-    * @dev Modifier that requires the "operational" boolean variable to be "true"
-    *      This is used on all state changing functions to pause the contract in 
-    *      the event there is an issue that needs to be fixed
-    */
-    modifier requireIsOperational()
-    {
-        require(operational, "Contract is currently not operational");
-        _;
-        // All modifiers require an "_" which indicates where the function body will be added
-    }
-
-    /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
-    /********************************************************************************************/
-
-    /**
-    * @dev Get operating status of contract
-    *
-    * @return A bool that is the current operating status
-    */
-    function isOperational() public view returns (bool) {
-        return operational;
-    }
-
-
-    /**
-    * @dev Sets contract operations on/off
-    *
-    * When operational mode is disabled, all write transactions except for this one will fail
-    */
-    function setOperatingStatus(bool mode) external onlyOwner {
-        operational = mode;
-    }
-
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
 
     /**
      * @dev Add an airline to the registration queue
      *      Can only be called from FlightSuretyApp contract
      *
      */
-    function registerAirline
-    (
-    )
-    external
-    pure
-    {
+    function registerAirline() external pure {
     }
 
 
@@ -77,24 +23,13 @@ contract FlightSuretyData is Ownable {
      * @dev Buy insurance for a flight
      *
      */
-    function buy
-    (
-    )
-    external
-    payable
-    {
-
+    function buy() external payable {
     }
 
     /**
      *  @dev Credits payouts to insurees
     */
-    function creditInsurees
-    (
-    )
-    external
-    pure
-    {
+    function creditInsurees() external pure {
     }
 
 
@@ -102,12 +37,7 @@ contract FlightSuretyData is Ownable {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay
-    (
-    )
-    external
-    pure
-    {
+    function pay() external pure {
     }
 
     /**
@@ -115,24 +45,10 @@ contract FlightSuretyData is Ownable {
      *      resulting in insurance payouts, the contract should be self-sustaining
      *
      */
-    function fund
-    (
-    )
-    public
-    payable
-    {
+    function fund() public payable {
     }
 
-    function getFlightKey
-    (
-        address airline,
-        string memory flight,
-        uint256 timestamp
-    )
-    pure
-    internal
-    returns (bytes32)
-    {
+    function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns (bytes32){
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
@@ -140,13 +56,9 @@ contract FlightSuretyData is Ownable {
     * @dev Fallback function for funding smart contract.
     *
     */
-    function()
-    external
-    payable
-    {
+    function() external payable {
         fund();
     }
-
 
 }
 
