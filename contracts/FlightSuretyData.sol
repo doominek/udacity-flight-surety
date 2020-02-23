@@ -1,15 +1,15 @@
 pragma solidity ^0.5.16;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract FlightSuretyData {
+contract FlightSuretyData is Ownable {
     using SafeMath for uint256;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
     /********************************************************************************************/
@@ -17,24 +17,8 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
 
-    /**
-    * @dev Constructor
-    *      The deploying account becomes contractOwner
-    */
-    constructor
-    (
-    )
-    public
-    {
-        contractOwner = msg.sender;
+    constructor() public {
     }
-
-    /********************************************************************************************/
-    /*                                       FUNCTION MODIFIERS                                 */
-    /********************************************************************************************/
-
-    // Modifiers help avoid duplication of code. They are typically used to validate something
-    // before a function is allowed to be executed.
 
     /**
     * @dev Modifier that requires the "operational" boolean variable to be "true"
@@ -48,15 +32,6 @@ contract FlightSuretyData {
         // All modifiers require an "_" which indicates where the function body will be added
     }
 
-    /**
-    * @dev Modifier that requires the "ContractOwner" account to be the function caller
-    */
-    modifier requireContractOwner()
-    {
-        require(msg.sender == contractOwner, "Caller is not contract owner");
-        _;
-    }
-
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -66,11 +41,7 @@ contract FlightSuretyData {
     *
     * @return A bool that is the current operating status
     */
-    function isOperational()
-    public
-    view
-    returns (bool)
-    {
+    function isOperational() public view returns (bool) {
         return operational;
     }
 
@@ -80,13 +51,7 @@ contract FlightSuretyData {
     *
     * When operational mode is disabled, all write transactions except for this one will fail
     */
-    function setOperatingStatus
-    (
-        bool mode
-    )
-    external
-    requireContractOwner
-    {
+    function setOperatingStatus(bool mode) external onlyOwner {
         operational = mode;
     }
 
