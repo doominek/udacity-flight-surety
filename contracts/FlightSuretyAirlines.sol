@@ -23,11 +23,11 @@ contract AirlineRole {
         return airlineAccounts.has(account);
     }
 
-    function addAirline(address account) public onlyAirline {
+    function assignAirlineRole(address account) public onlyAirline {
         _addAirline(account);
     }
 
-    function renounceAirline() public {
+    function renounceAirlineRole() public {
         _removeAirline(msg.sender);
     }
 
@@ -45,7 +45,7 @@ contract AirlineRole {
 contract FlightSuretyAirlines is AirlineRole {
 
     constructor(bytes32 name, address account) AirlineRole(account) public {
-        addToAirlines(name, account);
+        addAirline(name, account);
     }
 
     struct Airline {
@@ -78,15 +78,15 @@ contract FlightSuretyAirlines is AirlineRole {
 
     function registerAirline(bytes32 name, address account) public {
         if (airlines.length < 4) {
-            addToAirlines(name, account);
-            addAirline(account);
+            addAirline(name, account);
+            assignAirlineRole(account);
         } else {
-            addToRequests(name, account);
+            createRequest(name, account);
             approveAirlineJoinRequest(account);
         }
     }
 
-    function addToAirlines(bytes32 name, address account) private {
+    function addAirline(bytes32 name, address account) private {
         Airline memory airline = Airline({
             name : name,
             account : account,
@@ -95,7 +95,7 @@ contract FlightSuretyAirlines is AirlineRole {
         airlines.push(airline);
     }
 
-    function addToRequests(bytes32 name, address account) private {
+    function createRequest(bytes32 name, address account) private {
         AirlineJoinRequest memory request = AirlineJoinRequest({
             name : name,
             totalAccepted : 0,
