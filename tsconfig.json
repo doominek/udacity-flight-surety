@@ -7,7 +7,8 @@
     "types": [
       "node",
       "mocha",
-      "truffle-typings"
+      "truffle-typings",
+      "web3"
     ],
     "typeRoots": [
       "./node_modules/@types"
