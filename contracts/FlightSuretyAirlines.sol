@@ -62,17 +62,29 @@ contract FlightSuretyAirlines is AirlineRole {
         REJECT
     }
 
+    enum RequestStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
+
     struct AirlineJoinRequest {
         bytes32 name;
         mapping(address => VoteStatus) votes;
         uint8 totalAccepted;
         uint8 totalRejected;
+        RequestStatus status;
     }
 
     mapping(address => AirlineJoinRequest) public requests;
 
     modifier notVoted(address airline) {
-        require(requests[airline].votes[msg.sender] == VoteStatus.NONE, "Already voted");
+        require(requests[airline].votes[msg.sender] == VoteStatus.NONE, "Already voted.");
+        _;
+    }
+
+    modifier pending(address airline) {
+        require(requests[airline].status == RequestStatus.PENDING, "Must be in PENDING state.");
         _;
     }
 
@@ -86,7 +98,7 @@ contract FlightSuretyAirlines is AirlineRole {
         }
     }
 
-    function addAirline(bytes32 name, address account) private {
+    function addAirline(bytes32 name, address account) internal {
         Airline memory airline = Airline({
             name : name,
             account : account,
@@ -95,25 +107,38 @@ contract FlightSuretyAirlines is AirlineRole {
         airlines.push(airline);
     }
 
-    function createRequest(bytes32 name, address account) private {
+    function createRequest(bytes32 name, address requester) internal {
         AirlineJoinRequest memory request = AirlineJoinRequest({
             name : name,
             totalAccepted : 0,
-            totalRejected : 0
+            totalRejected : 0,
+            status : RequestStatus.PENDING
             });
-        requests[account] = request;
+        requests[requester] = request;
     }
 
-    function approveAirlineJoinRequest(address airline) public onlyAirline notVoted(airline) {
-        AirlineJoinRequest storage request = requests[airline];
+    function tryFinalizeRequest(AirlineJoinRequest storage request, address requester) internal {
+        if (uint16(request.totalAccepted) * 100 / airlines.length >= 50) {
+            request.status = RequestStatus.APPROVED;
+            addAirline(request.name, requester);
+            assignAirlineRole(requester);
+        } else if (uint16(request.totalRejected) * 100 / airlines.length >= 50) {
+            request.status = RequestStatus.REJECTED;
+        }
+    }
+
+    function approveAirlineJoinRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+        AirlineJoinRequest storage request = requests[requester];
         request.votes[msg.sender] = VoteStatus.ACCEPT;
         request.totalAccepted += 1;
+        tryFinalizeRequest(request, requester);
     }
 
-    function rejectAirlineJoinRequest(address airline) public onlyAirline notVoted(airline) {
-        AirlineJoinRequest storage request = requests[airline];
-        request.votes[msg.sender] = VoteStatus.ACCEPT;
+    function rejectAirlineJoinRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+        AirlineJoinRequest storage request = requests[requester];
+        request.votes[msg.sender] = VoteStatus.REJECT;
         request.totalRejected += 1;
+        tryFinalizeRequest(request, requester);
     }
 
     function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates) {
