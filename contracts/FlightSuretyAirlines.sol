@@ -58,6 +58,7 @@ contract FlightSuretyAirlines is AirlineRole {
     }
 
     Airline[] public airlines;
+    mapping(address => uint) private airlineIndexByAccount;
 
     enum VoteStatus {
         NONE,
@@ -102,6 +103,7 @@ contract FlightSuretyAirlines is AirlineRole {
     }
 
     function addAirline(bytes32 name, address account) internal {
+        airlineIndexByAccount[account] = airlines.length;
         Airline memory airline = Airline({
             name : name,
             account : account,
@@ -147,18 +149,11 @@ contract FlightSuretyAirlines is AirlineRole {
 
     function submitFundingFee() payable external onlyAirline {
         require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
+        Airline storage airline = airlines[airlineIndexByAccount[msg.sender]];
 
-        uint airlineIdx;
-        for (uint i = 0; i < airlines.length; i++) {
-            if (airlines[i].account == msg.sender) {
-                airlineIdx = i;
-                break;
-            }
-        }
+        require(!airline.paid, "Funding fee already submitted.");
 
-        require(!airlines[airlineIdx].paid, "Funding fee already submitted.");
-
-        airlines[airlineIdx].paid = true;
+        airline.paid = true;
     }
 
     function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
