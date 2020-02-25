@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "types": [
+      "node",
+      "mocha",
+      "truffle-typings"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  },
+  "include": ["./scripts", "./test"]
+}
