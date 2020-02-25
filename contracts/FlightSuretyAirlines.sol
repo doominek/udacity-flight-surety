@@ -44,6 +44,8 @@ contract AirlineRole {
 
 contract FlightSuretyAirlines is AirlineRole {
 
+    uint constant AIRLINE_FUNDING_FEE = 10 ether;
+
     constructor(bytes32 name, address account) AirlineRole(account) public {
         addAirline(name, account);
     }
@@ -52,6 +54,7 @@ contract FlightSuretyAirlines is AirlineRole {
         bytes32 name;
         address account;
         uint date;
+        bool paid;
     }
 
     Airline[] public airlines;
@@ -64,7 +67,7 @@ contract FlightSuretyAirlines is AirlineRole {
 
     enum RequestStatus {
         PENDING,
-        APPROVED,
+        ACCEPTED,
         REJECTED
     }
 
@@ -94,7 +97,7 @@ contract FlightSuretyAirlines is AirlineRole {
             assignAirlineRole(account);
         } else {
             createRequest(name, account);
-            approveAirlineJoinRequest(account);
+            acceptAirlineJoinRequest(account);
         }
     }
 
@@ -102,7 +105,8 @@ contract FlightSuretyAirlines is AirlineRole {
         Airline memory airline = Airline({
             name : name,
             account : account,
-            date : now
+            date : now,
+            paid : false
             });
         airlines.push(airline);
     }
@@ -119,7 +123,7 @@ contract FlightSuretyAirlines is AirlineRole {
 
     function tryFinalizeRequest(AirlineJoinRequest storage request, address requester) internal {
         if (uint16(request.totalAccepted) * 100 / airlines.length >= 50) {
-            request.status = RequestStatus.APPROVED;
+            request.status = RequestStatus.ACCEPTED;
             addAirline(request.name, requester);
             assignAirlineRole(requester);
         } else if (uint16(request.totalRejected) * 100 / airlines.length >= 50) {
@@ -127,7 +131,7 @@ contract FlightSuretyAirlines is AirlineRole {
         }
     }
 
-    function approveAirlineJoinRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+    function acceptAirlineJoinRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
         AirlineJoinRequest storage request = requests[requester];
         request.votes[msg.sender] = VoteStatus.ACCEPT;
         request.totalAccepted += 1;
@@ -141,18 +145,37 @@ contract FlightSuretyAirlines is AirlineRole {
         tryFinalizeRequest(request, requester);
     }
 
-    function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates) {
+    function submitFundingFee() payable external onlyAirline {
+        require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
+
+        uint airlineIdx;
+        for (uint i = 0; i < airlines.length; i++) {
+            if (airlines[i].account == msg.sender) {
+                airlineIdx = i;
+                break;
+            }
+        }
+
+        require(!airlines[airlineIdx].paid, "Funding fee already submitted.");
+
+        airlines[airlineIdx].paid = true;
+    }
+
+    function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
         bytes32[] memory names = new bytes32[](airlines.length);
         address[] memory accounts = new address[](airlines.length);
         uint[] memory dates = new uint[](airlines.length);
+        bool[] memory paid = new bool[](airlines.length);
 
         for (uint i = 0; i < airlines.length; i++) {
             Airline storage airline = airlines[i];
             names[i] = bytes32(airline.name);
             accounts[i] = airline.account;
             dates[i] = airline.date;
+            paid[i] = airline.paid;
+
         }
 
-        return (names, accounts, dates);
+        return (names, accounts, dates, paid);
     }
 }
