@@ -92,7 +92,12 @@ contract FlightSuretyAirlines is AirlineRole {
         _;
     }
 
-    function registerAirline(bytes32 name, address account) public {
+    modifier whenFundingFeePaid() {
+        require(isFundingFeePaid(), "Funding fee not paid");
+        _;
+    }
+
+    function registerAirline(bytes32 name, address account) public onlyAirline whenFundingFeePaid {
         if (airlines.length < 4) {
             addAirline(name, account);
             assignAirlineRole(account);
@@ -149,11 +154,14 @@ contract FlightSuretyAirlines is AirlineRole {
 
     function submitFundingFee() payable external onlyAirline {
         require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
+        require(!isFundingFeePaid(), "Funding fee already submitted.");
+
         Airline storage airline = airlines[airlineIndexByAccount[msg.sender]];
-
-        require(!airline.paid, "Funding fee already submitted.");
-
         airline.paid = true;
+    }
+
+    function isFundingFeePaid() internal view returns (bool) {
+        return airlines[airlineIndexByAccount[msg.sender]].paid;
     }
 
     function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
