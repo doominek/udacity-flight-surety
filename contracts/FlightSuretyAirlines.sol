@@ -44,7 +44,7 @@ contract AirlineRole {
 
 contract FlightSuretyAirlines is AirlineRole {
 
-    uint constant AIRLINE_FUNDING_FEE = 10 ether;
+    uint constant AIRLINE_FUNDING_FEE = 1 ether;
 
     constructor(bytes32 name, address account) AirlineRole(account) public {
         addAirline(name, account);
@@ -162,6 +162,12 @@ contract FlightSuretyAirlines is AirlineRole {
 
     function isFundingFeePaid() internal view returns (bool) {
         return airlines[airlineIndexByAccount[msg.sender]].paid;
+    }
+
+    function getAirline(address addr) external view returns (bytes32 name, address account, uint date, bool paid) {
+        Airline storage airline = airlines[airlineIndexByAccount[addr]];
+
+        return (airline.name, airline.account, airline.date, airline.paid);
     }
 
     function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
