@@ -39,7 +39,8 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
         thirdAirline,
         fourthAirline,
         firstCandidateAirline,
-        secondCandidateAirline
+        secondCandidateAirline,
+        thirdCandidateAirline
     ] = accounts;
 
     const fundingFee = web3.utils.toWei('1', 'ether');
@@ -56,7 +57,7 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
 
         it('first airline should wait for submitting funding', async () => {
             const airline = parseAirline(await instance.getAirline(firstAirline));
-            console.log(airline);
+
             expect(airline.paid).to.be.false;
         });
 
@@ -106,34 +107,76 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
         });
     });
 
-    describe.skip('when registering 5th airline', () => {
-        it('should be accepted after 2 requests approved', async () => {
-            await instance.registerAirline(web3.utils.utf8ToHex('PLL Lot - 1'), firstCandidateAirline, { from: firstAirline });
-            await instance.acceptAirlineJoinRequest(firstCandidateAirline, { from: secondAirline });
+    describe('(multiparty consensus)', () => {
+        describe('when registering 5th airline', () => {
+            it('should be accepted after 2 requests approved', async () => {
+                await instance.registerAirline(web3.utils.utf8ToHex('New Airline - 1'), firstCandidateAirline, { from: firstAirline });
 
-            const airlines = await instance.getAllAirlines();
+                const isAirline = await instance.isAirline(secondCandidateAirline);
+                expect(isAirline).to.be.false;
 
-            expect(airlines[0]).to.have.lengthOf(5, 'should be 5 airlines');
+                await instance.acceptAirlineJoinRequest(firstCandidateAirline, { from: secondAirline });
+
+                const airlines = parseAirlines(await instance.getAllAirlines());
+                expect(airlines).to.have.lengthOf(5, 'should be 5 airlines');
+
+                const newAirline = _.last(airlines) as Airline;
+                expect(newAirline.account).to.equal(firstCandidateAirline);
+                expect(newAirline.paid).to.be.false;
+                expect(newAirline.name).to.equal('New Airline - 1');
+            });
+        });
+
+        describe('when registering 6th airline', () => {
+            it('should be accepted after 3 requests approved', async () => {
+                await instance.registerAirline(web3.utils.utf8ToHex('New Airline - 2'), secondCandidateAirline, { from: firstAirline });
+
+                const isAirline = await instance.isAirline(secondCandidateAirline);
+
+                expect(isAirline).to.be.false;
+
+                await instance.acceptAirlineJoinRequest(secondCandidateAirline, { from: secondAirline });
+                await instance.acceptAirlineJoinRequest(secondCandidateAirline, { from: thirdAirline });
+
+                const airlines = parseAirlines(await instance.getAllAirlines());
+
+                expect(airlines).to.have.lengthOf(6, 'should be 6 airlines');
+
+                const newAirline = _.last(airlines) as Airline;
+
+                expect(newAirline.account).to.equal(secondCandidateAirline);
+                expect(newAirline.paid).to.be.false;
+                expect(newAirline.name).to.equal('New Airline - 2');
+            });
+        });
+
+        describe('when registering 7th airline', () => {
+            it('should be rejected after 3 requests rejected', async () => {
+                await instance.registerAirline(web3.utils.utf8ToHex('New Airline - 3'), thirdCandidateAirline, { from: firstAirline });
+
+                const isAirline = await instance.isAirline(thirdCandidateAirline);
+
+                expect(isAirline).to.be.false;
+
+                await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: secondAirline });
+                await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: thirdAirline });
+                await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: fourthAirline });
+
+                const airlines = parseAirlines(await instance.getAllAirlines());
+
+                expect(airlines).to.have.lengthOf(6, 'should be 6 airlines');
+            });
+
+            it('should not allow voting for request that is completed', async () => {
+                try {
+                    await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: firstCandidateAirline });
+                    assert.fail('should throw error');
+                } catch (e) {
+                    assert.equal(e.reason, 'Must be in PENDING state.');
+                }
+            });
         });
     });
 
-    describe.skip('when registering 6th airline', () => {
-        it('should be accepted after 3 requests approved', async () => {
-            await instance.registerAirline(web3.utils.utf8ToHex('PLL Lot - 2'), secondCandidateAirline, { from: firstAirline });
-            await instance.acceptAirlineJoinRequest(secondCandidateAirline, { from: secondAirline });
-            await instance.acceptAirlineJoinRequest(secondCandidateAirline, { from: thirdAirline });
-
-            let airlines: any = await instance.getAllAirlines();
-
-            expect(airlines[0]).to.have.lengthOf(6);
-
-            await instance.submitFundingFee({ from: secondCandidateAirline, value: web3.utils.toWei('1', 'ether') });
-
-            airlines = await instance.getAllAirlines();
-
-            console.log(airlines);
-            expect(airlines[3][5]).to.be.true;
-        });
-    });
 
 });
