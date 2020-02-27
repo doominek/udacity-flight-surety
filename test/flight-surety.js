@@ -1,7 +1,7 @@
 
 var Test = require('../config/testConfig.js');
 
-contract('Flight Surety Tests', async (accounts) => {
+contract.skip('Flight Surety Tests', async (accounts) => {
 
   var config;
   before('setup contract', async () => {
