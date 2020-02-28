@@ -112,29 +112,63 @@ contract('FlightSuretyApp - Oracles', async (accounts) => {
             }
         });
 
-        it('should be accepted when data matches existing request', async () => {
+        describe('and response is valid', () => {
             let requiredOracleIdx: any;
-            let flightName;
+            let flightName: string;
             let timestamp = Date.now();
-            let i = 1;
 
-            do {
-                // WORKAROUND: due to random nature of fetching flight status
-                // we're creating fetch flight request until it can be accepted for "firstOracle" to simplify test
-                flightName = `${flight}/${i}`;
-                timestamp = Math.floor(Date.now() / 1000);
+            it('should emit OracleReport event', async () => {
+                let i = 1;
+                do {
+                    // WORKAROUND: due to random nature of fetching flight status
+                    // we're creating fetch flight request until it can be accepted for "firstOracle" to simplify test
+                    flightName = `${flight}/${i}`;
+                    timestamp = Math.floor(Date.now() / 1000);
 
-                const result = await contract.fetchFlightStatus(airline, flightName, timestamp);
-                requiredOracleIdx = result.logs[0].args['index'];
-                i++;
-            } while (!firstOracleIndexes.some(idx => idx.eq(requiredOracleIdx)));
+                    const result = await contract.fetchFlightStatus(airline, flightName, timestamp);
+                    requiredOracleIdx = result.logs[0].args['index'];
+                    i++;
+                } while (!firstOracleIndexes.some(idx => idx.eq(requiredOracleIdx)));
 
-            await contract.submitOracleResponse(requiredOracleIdx,
-                                                airline,
-                                                flightName,
-                                                timestamp,
-                                                STATUS_CODE_ON_TIME,
-                                                { from: firstOracle });
-        }).timeout(2000);
+                const result = await contract.submitOracleResponse(requiredOracleIdx,
+                                                                   airline,
+                                                                   flightName,
+                                                                   timestamp,
+                                                                   STATUS_CODE_ON_TIME,
+                                                                   { from: firstOracle });
+
+                expect(result.logs).to.have.lengthOf(1);
+
+                const log = result.logs[0];
+                expect(log.event).to.eq('OracleReport');
+                expect(log.args['airline']).to.eq(airline);
+                expect(log.args['flight']).to.eq(flightName);
+                expect(log.args['status']?.toNumber()).to.be.eq(STATUS_CODE_ON_TIME);
+            }).timeout(2000);
+
+            it('should emit FlightStatusInfo after 3 valid responses submitted', async () => {
+                await contract.submitOracleResponse(requiredOracleIdx,
+                                                    airline,
+                                                    flightName,
+                                                    timestamp,
+                                                    STATUS_CODE_ON_TIME,
+                                                    { from: firstOracle });
+                const third = await contract.submitOracleResponse(requiredOracleIdx,
+                                                                   airline,
+                                                                   flightName,
+                                                                   timestamp,
+                                                                   STATUS_CODE_ON_TIME,
+                                                                   { from: firstOracle });
+
+                expect(third.logs).to.have.lengthOf(2);
+
+                const log = third.logs[1];
+                expect(log.event).to.eq('FlightStatusInfo');
+                expect(log.args['airline']).to.eq(airline);
+                expect(log.args['flight']).to.eq(flightName);
+                expect(log.args['status']?.toNumber()).to.be.eq(STATUS_CODE_ON_TIME);
+            });
+        });
+
     });
 });
