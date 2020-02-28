@@ -40,14 +40,14 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(address airline, string calldata flight, uint256 timestamp) external {
-        uint8 index = getRandomIndex(msg.sender);
+        uint8 index = getRandomIndex(msg.sender, keccak256(abi.encode(airline, flight, timestamp)));
 
         // Generate a unique key for storing the request
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         oracleResponses[key] = ResponseInfo({
             requester : msg.sender,
             isOpen : true
-            });
+        });
 
         emit OracleRequest(index, airline, flight, timestamp);
     }
@@ -59,7 +59,7 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     uint8 private nonce = 0;
 
     // Fee to be paid when registering oracle
-    uint256 public constant REGISTRATION_FEE = 1 ether;
+    uint256 public constant ORACLE_REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
@@ -98,9 +98,9 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
 
     // Register an oracle with the contract
-    function registerOracle() external payable onlyOwner whenNotPaused {
+    function registerOracle() external payable whenNotPaused {
         // Require registration fee
-        require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
+        require(msg.value >= ORACLE_REGISTRATION_FEE, "Registration fee is required");
 
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
@@ -126,7 +126,8 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
         string calldata flight,
         uint256 timestamp,
         uint8 statusCode) external whenNotPaused {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
+        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index),
+            "Index does not match oracle request");
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
@@ -156,27 +157,27 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     // Returns array of three non-duplicating integers from 0-9
     function generateIndexes(address account) internal returns (uint8[3] memory) {
         uint8[3] memory indexes;
-        indexes[0] = getRandomIndex(account);
+        indexes[0] = getRandomIndex(account, 0);
 
         indexes[1] = indexes[0];
         while (indexes[1] == indexes[0]) {
-            indexes[1] = getRandomIndex(account);
+            indexes[1] = getRandomIndex(account, 0);
         }
 
         indexes[2] = indexes[1];
         while ((indexes[2] == indexes[0]) || (indexes[2] == indexes[1])) {
-            indexes[2] = getRandomIndex(account);
+            indexes[2] = getRandomIndex(account, 0);
         }
 
         return indexes;
     }
 
     // Returns array of three non-duplicating integers from 0-9
-    function getRandomIndex(address account) internal returns (uint8) {
+    function getRandomIndex(address account, bytes32 mix) internal returns (uint8) {
         uint8 maxValue = 10;
 
         // Pseudo random number...the incrementing nonce adds variation
-        uint8 random = uint8(uint256(keccak256(abi.encodePacked(blockhash(block.number - nonce++), account))) % maxValue);
+        uint8 random = uint8(uint256(keccak256(abi.encode(blockhash(block.number - nonce++), account, mix))) % maxValue);
 
         if (nonce > 250) {
             nonce = 0;
