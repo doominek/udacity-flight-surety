@@ -1,12 +1,14 @@
 const FlightSuretyApp = artifacts.require("FlightSuretyApp");
 
 module.exports = async function(callback) {
-    const contract = await FlightSuretyApp.deployed();
-    const accounts = await web3.eth.getAccounts();
-    console.log(accounts);
+    try { 
+        const contract = await FlightSuretyApp.deployed();
+        const accounts = await web3.eth.getAccounts();
     
-    const isAirline = await contract.isAirline(accounts[1]);
-    console.log(isAirline);
+        await contract.submitFundingFee({ from: accounts[1], value: web3.utils.toWei("1", "ether") });
     
-    callback();
+        callback();
+    } catch (e) {
+        callback(e);
+    }
 }
