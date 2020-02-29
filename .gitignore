@@ -4,3 +4,5 @@ build
 .idea
 src/dapp/config.json
 src/server/config.json
+
+**/node_modules
