@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
+import { connect, registerOracles } from './oracles';
 
 import flightsRouter from './routes/flights';
 
@@ -20,3 +21,12 @@ app.use('/api', flightsRouter);
 app.listen(PORT, () => {
     console.log('Server started at http://localhost:' + PORT);
 });
+
+const setupOracles = async () => {
+  const connection = await connect();
+  await registerOracles(connection.contract, connection.accounts);
+};
+
+setupOracles()
+    .then(() => console.log("Oracles Initialization completed successfully"))
+    .catch(console.error);
