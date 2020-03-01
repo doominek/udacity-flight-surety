@@ -4,6 +4,7 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import * as _ from 'lodash';
 import { FlightStatusOracle, FlightStatusOracles } from './flight-status-oracle';
+import { FlightStatus } from '../model/flight';
 
 
 const NUMBER_OF_ORACLES = 20;
@@ -53,14 +54,16 @@ const subscribeToOracleRequestEvents = async (contract: FlightSuretyAppContract)
         const idx = parseInt(event.index, 10);
         const matchedOracles = _.take(oracles.findWithIndex(idx),
                                       MIN_NUMBER_OF_REQUIRED_RESPONSES);
+
         for (let oracle of matchedOracles) {
             await contract.methods.submitOracleResponse(idx,
                                                         event.airline,
                                                         event.flight,
                                                         event.timestamp,
-                                                        10)
+                                                        FlightStatus.ON_TIME)
                           .send({ from: oracle.account, gas: MAX_GAS_AMOUNT });
-            console.log("Successfully submitted Oracle response from", oracle.toString());
+
+            console.log('Successfully submitted Oracle response from', oracle.toString());
         }
     }
 
