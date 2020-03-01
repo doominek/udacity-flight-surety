@@ -2,9 +2,33 @@ pragma solidity ^0.5.16;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
 
-contract FlightSuretyData is Ownable, Pausable {
+
+contract AuthorizedCallerRole {
+    using Roles for Roles.Role;
+
+    Roles.Role private authorizedCallers;
+
+    modifier onlyAuthorizedCaller() {
+        require(isAuthorizedCaller(msg.sender), "Caller is not authorized");
+        _;
+    }
+
+    function isAuthorizedCaller(address account) public view returns (bool) {
+        return authorizedCallers.has(account);
+    }
+
+    function addAuthorizedCaller(address account) internal {
+        authorizedCallers.add(account);
+    }
+
+    function removeAuthorizedCaller(address account) internal {
+        authorizedCallers.remove(account);
+    }
+}
+
+contract FlightSuretyData is Ownable, AuthorizedCallerRole {
     using SafeMath for uint256;
 
     constructor() public {
@@ -60,5 +84,8 @@ contract FlightSuretyData is Ownable, Pausable {
         fund();
     }
 
+    function authorizeCaller(address account) external onlyOwner {
+        addAuthorizedCaller(account);
+    }
 }
 
