@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
-import { connect, registerOracles } from './oracles';
+import { connect, registerOracles, subscribeToOracleRequestEvents } from './oracles';
 
 import flightsRouter from './routes/flights';
 
@@ -23,10 +23,11 @@ app.listen(PORT, () => {
 });
 
 const setupOracles = async () => {
-  const connection = await connect();
-  await registerOracles(connection.contract, connection.accounts);
+    const connection = await connect();
+    await registerOracles(connection.contract, connection.accounts);
+    await subscribeToOracleRequestEvents(connection.contract);
 };
 
 setupOracles()
-    .then(() => console.log("Oracles Initialization completed successfully"))
+    .then(() => console.log('Oracles Initialization completed successfully'))
     .catch(console.error);

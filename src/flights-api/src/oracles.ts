@@ -4,9 +4,25 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import * as _ from 'lodash';
 
-const NUMBER_OF_ORACLES = 20;
+class FlightStatusOracles {
+    private oracles: FlightStatusOracle[] = [];
 
-let oracles: FlightStatusOracle[] = [];
+    constructor() {
+    }
+
+    add(oracle: FlightStatusOracle) {
+        this.oracles.push(oracle);
+    }
+
+    findWithIndex(idx: number): FlightStatusOracle[] {
+        return this.oracles
+                   .filter(o => o.indexes.some(i => i === idx));
+    }
+
+    toString() {
+        return this.oracles;
+    }
+}
 
 class FlightStatusOracle {
     constructor(private readonly id: number,
@@ -18,6 +34,9 @@ class FlightStatusOracle {
         return `FlightStatusOracle(id=${this.id},account=${this.account},indexes${this.indexes}`;
     }
 }
+
+const NUMBER_OF_ORACLES = 20;
+const oracles: FlightStatusOracles = new FlightStatusOracles();
 
 const connect = async () => {
     const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:8545'));
@@ -42,16 +61,28 @@ const registerOracles = async (contract: FlightSuretyAppContract, accounts: stri
     for (let idx = 0; idx < NUMBER_OF_ORACLES; idx++) {
         const account = accounts[20 + idx];
 
-        await contract.methods.registerOracle().send({ from: account, value: fee, gas: "0x6691b7" });
+        await contract.methods.registerOracle().send({ from: account, value: fee, gas: '0x6691b7' });
         const indexes = await contract.methods.getMyIndexes().call({ from: account });
 
-        oracles[idx] = new FlightStatusOracle(idx, account, indexes.map(i => parseInt(i, 10)));
+        oracles.add(new FlightStatusOracle(idx, account, indexes.map(i => parseInt(i, 10))));
     }
+};
 
-    console.log("oracles => ", oracles);
+const subscribeToOracleRequestEvents = async (contract: FlightSuretyAppContract) => {
+    contract.events.OracleRequest({ fromBlock: 'latest' },
+                                  (error, result) => {
+                                      if (error) {
+                                          console.error(error);
+                                      } else {
+                                          console.log('Flight Status Requested', result.returnValues);
+                                          const matchedOracles = oracles.findWithIndex(parseInt(result.returnValues.index, 10));
+                                          console.log('Appropriate oracles: ', matchedOracles);
+                                      }
+                                  });
 };
 
 export {
     connect,
-    registerOracles
+    registerOracles,
+    subscribeToOracleRequestEvents
 };
