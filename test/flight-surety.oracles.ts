@@ -112,7 +112,7 @@ contract('FlightSuretyApp - Oracles', async (accounts) => {
             }
         });
 
-        describe('and response is valid', () => {
+        describe('and when response is valid', () => {
             let requiredOracleIdx: any;
             let flightName: string;
             let timestamp = Date.now();
@@ -146,7 +146,7 @@ contract('FlightSuretyApp - Oracles', async (accounts) => {
                 expect(log.args['status']?.toNumber()).to.be.eq(STATUS_CODE_ON_TIME);
             }).timeout(2000);
 
-            it('should emit FlightStatusInfo after 3 valid responses submitted', async () => {
+            it('should emit FlightStatusInfo after 3 valid responses', async () => {
                 await contract.submitOracleResponse(requiredOracleIdx,
                                                     airline,
                                                     flightName,
@@ -154,11 +154,11 @@ contract('FlightSuretyApp - Oracles', async (accounts) => {
                                                     STATUS_CODE_ON_TIME,
                                                     { from: firstOracle });
                 const third = await contract.submitOracleResponse(requiredOracleIdx,
-                                                                   airline,
-                                                                   flightName,
-                                                                   timestamp,
-                                                                   STATUS_CODE_ON_TIME,
-                                                                   { from: firstOracle });
+                                                                  airline,
+                                                                  flightName,
+                                                                  timestamp,
+                                                                  STATUS_CODE_ON_TIME,
+                                                                  { from: firstOracle });
 
                 expect(third.logs).to.have.lengthOf(2);
 
@@ -167,6 +167,29 @@ contract('FlightSuretyApp - Oracles', async (accounts) => {
                 expect(log.args['airline']).to.eq(airline);
                 expect(log.args['flight']).to.eq(flightName);
                 expect(log.args['status']?.toNumber()).to.be.eq(STATUS_CODE_ON_TIME);
+            });
+
+            it('should finally update flight status', async () => {
+                const result = await contract.getFlight(airline, flightName, timestamp);
+
+                expect(result).to.be.not.empty;
+                expect(result[0]).to.eq(true);
+                expect(result[1].toNumber()).to.eq(10);
+                expect(result[2]).to.be.not.empty;
+            });
+
+            it('should not accept more responses', async () => {
+                try {
+                    await contract.submitOracleResponse(requiredOracleIdx,
+                                                        airline,
+                                                        flightName,
+                                                        timestamp,
+                                                        STATUS_CODE_ON_TIME,
+                                                        { from: firstOracle });
+                    assert.fail('should throw error');
+                } catch (e) {
+                    expect(e.reason).to.be.eq('Flight or timestamp do not match oracle request');
+                }
             });
         });
 

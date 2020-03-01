@@ -34,7 +34,22 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
      * @dev Called after oracle has updated flight status
      *
      */
-    function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal pure {
+    function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal {
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+
+        Flight storage flightData = flights[key];
+        flightData.isRegistered = true;
+        flightData.statusCode = statusCode;
+        flightData.updatedTimestamp = now;
+        flightData.airline = airline;
+    }
+
+    function getFlight(address airline, string calldata flight, uint256 timestamp) view external
+        returns (bool isRegistered, uint8 statusCode, uint256 updatedTimestamp) {
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+        Flight storage flightData = flights[key];
+
+        return (flightData.isRegistered, flightData.statusCode, flightData.updatedTimestamp);
     }
 
 
@@ -130,28 +145,29 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
             "Index does not match oracle request");
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
-        require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
+        ResponseInfo storage responseInfo = oracleResponses[key];
 
-        oracleResponses[key].responses[statusCode].push(msg.sender);
+        require(responseInfo.isOpen, "Flight or timestamp do not match oracle request");
+
+        responseInfo.responses[statusCode].push(msg.sender);
+        emit OracleReport(airline, flight, timestamp, statusCode);
 
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
-        emit OracleReport(airline, flight, timestamp, statusCode);
-        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
-
-            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+        if (responseInfo.responses[statusCode].length >= MIN_RESPONSES) {
+            responseInfo.isOpen = false;
 
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);
+            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
         }
     }
-
 
     function getFlightKey(
         address airline,
         string memory flight,
         uint256 timestamp) pure internal returns (bytes32) {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        return keccak256(abi.encode(airline, flight, timestamp));
     }
 
     // Returns array of three non-duplicating integers from 0-9
