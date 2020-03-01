@@ -31,11 +31,13 @@ class FlightStatusOracle {
     }
 
     toString(): string {
-        return `FlightStatusOracle(id=${this.id},account=${this.account},indexes${this.indexes}`;
+        return `FlightStatusOracle(id=${this.id},account=${this.account},indexes${this.indexes})`;
     }
 }
 
 const NUMBER_OF_ORACLES = 20;
+const MIN_NUMBER_OF_REQUIRED_RESPONSES = 3;
+const MAX_GAS_AMOUNT = '0x6691b7';
 const oracles: FlightStatusOracles = new FlightStatusOracles();
 
 const connect = async () => {
@@ -61,22 +63,41 @@ const registerOracles = async (contract: FlightSuretyAppContract, accounts: stri
     for (let idx = 0; idx < NUMBER_OF_ORACLES; idx++) {
         const account = accounts[20 + idx];
 
-        await contract.methods.registerOracle().send({ from: account, value: fee, gas: '0x6691b7' });
+        await contract.methods.registerOracle().send({ from: account, value: fee, gas: MAX_GAS_AMOUNT });
         const indexes = await contract.methods.getMyIndexes().call({ from: account });
 
         oracles.add(new FlightStatusOracle(idx, account, indexes.map(i => parseInt(i, 10))));
     }
 };
 
+interface OracleRequestEventData {
+    index: string;
+    airline: string;
+    flight: string;
+    timestamp: string;
+}
+
 const subscribeToOracleRequestEvents = async (contract: FlightSuretyAppContract) => {
+    async function submitFlightStatusResponse(event: OracleRequestEventData) {
+        const idx = parseInt(event.index, 10);
+        const matchedOracles = _.take(oracles.findWithIndex(idx),
+                                      MIN_NUMBER_OF_REQUIRED_RESPONSES);
+        for (let oracle of matchedOracles) {
+            await contract.methods.submitOracleResponse(idx,
+                                                        event.airline,
+                                                        event.flight,
+                                                        event.timestamp,
+                                                        10)
+                          .send({ from: oracle.account, gas: MAX_GAS_AMOUNT });
+        }
+    }
+
     contract.events.OracleRequest({ fromBlock: 'latest' },
-                                  (error, result) => {
+                                  async (error, result) => {
                                       if (error) {
                                           console.error(error);
                                       } else {
-                                          console.log('Flight Status Requested', result.returnValues);
-                                          const matchedOracles = oracles.findWithIndex(parseInt(result.returnValues.index, 10));
-                                          console.log('Appropriate oracles: ', matchedOracles);
+                                          await submitFlightStatusResponse(result.returnValues);
                                       }
                                   });
 };
