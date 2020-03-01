@@ -1,39 +1,10 @@
-import FlightSuretyApp from '../../../build/contracts/FlightSuretyApp.json';
-import { FlightSuretyApp as FlightSuretyAppContract } from '../../../generated/web3/contracts/FlightSuretyApp';
+import FlightSuretyApp from '../../../../build/contracts/FlightSuretyApp.json';
+import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import * as _ from 'lodash';
+import { FlightStatusOracle, FlightStatusOracles } from './flight-status-oracle';
 
-class FlightStatusOracles {
-    private oracles: FlightStatusOracle[] = [];
-
-    constructor() {
-    }
-
-    add(oracle: FlightStatusOracle) {
-        this.oracles.push(oracle);
-    }
-
-    findWithIndex(idx: number): FlightStatusOracle[] {
-        return this.oracles
-                   .filter(o => o.indexes.some(i => i === idx));
-    }
-
-    toString() {
-        return this.oracles;
-    }
-}
-
-class FlightStatusOracle {
-    constructor(private readonly id: number,
-                public readonly account: string,
-                public readonly indexes: number[]) {
-    }
-
-    toString(): string {
-        return `FlightStatusOracle(id=${this.id},account=${this.account},indexes${this.indexes})`;
-    }
-}
 
 const NUMBER_OF_ORACLES = 20;
 const MIN_NUMBER_OF_REQUIRED_RESPONSES = 3;
@@ -89,6 +60,7 @@ const subscribeToOracleRequestEvents = async (contract: FlightSuretyAppContract)
                                                         event.timestamp,
                                                         10)
                           .send({ from: oracle.account, gas: MAX_GAS_AMOUNT });
+            console.log("Successfully submitted Oracle response from", oracle.toString());
         }
     }
 
@@ -102,8 +74,12 @@ const subscribeToOracleRequestEvents = async (contract: FlightSuretyAppContract)
                                   });
 };
 
+const setupOracles = async () => {
+    const connection = await connect();
+    await registerOracles(connection.contract, connection.accounts);
+    await subscribeToOracleRequestEvents(connection.contract);
+};
+
 export {
-    connect,
-    registerOracles,
-    subscribeToOracleRequestEvents
+    setupOracles
 };
