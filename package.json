@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "truffle compile && typechain --target truffle './build/contracts/*.json' --outDir './generated/contracts'",
+    "generate": "truffle compile && typechain --target truffle './build/contracts/*.json' --outDir './generated/truffle/contracts' && typechain --target web3-v1 './build/contracts/*.json' --outDir './generated/web3/contracts'",
     "ganache": "ganache-cli --accounts 40 --defaultBalanceEther 200 --deterministic --mnemonic \"juice notice lava cargo rookie harbor payment foam grunt girl lottery nose cherry pluck hello\""
   },
   "author": "",
@@ -25,6 +25,7 @@
     "ts-node": "^8.6.2",
     "typechain": "^1.0.5",
     "typechain-target-truffle": "^1.0.2",
+    "typechain-target-web3-v1": "^1.0.4",
     "typescript": "^3.8.2",
     "web3": "^1.2.6"
   },

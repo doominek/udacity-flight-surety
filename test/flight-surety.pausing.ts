@@ -1,4 +1,4 @@
-import { FlightSuretyAppInstance } from '../generated/contracts';
+import { FlightSuretyAppInstance } from '../generated/truffle/contracts';
 
 import { expect } from 'chai';
 

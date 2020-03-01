@@ -1,4 +1,4 @@
-import { FlightSuretyAppInstance } from '../generated/contracts';
+import { FlightSuretyAppInstance } from '../generated/truffle/contracts';
 import * as _ from 'lodash';
 
 const FlightSuretyApp = artifacts.require('FlightSuretyApp');
