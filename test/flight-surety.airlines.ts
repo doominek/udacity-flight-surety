@@ -115,7 +115,7 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
                 const isAirline = await instance.isAirline(secondCandidateAirline);
                 expect(isAirline).to.be.false;
 
-                await instance.acceptAirlineJoinRequest(firstCandidateAirline, { from: secondAirline });
+                await instance.voteToAcceptRequest(firstCandidateAirline, { from: secondAirline });
 
                 const airlines = parseAirlines(await instance.getAllAirlines());
                 expect(airlines).to.have.lengthOf(5, 'should be 5 airlines');
@@ -135,8 +135,8 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
 
                 expect(isAirline).to.be.false;
 
-                await instance.acceptAirlineJoinRequest(secondCandidateAirline, { from: secondAirline });
-                await instance.acceptAirlineJoinRequest(secondCandidateAirline, { from: thirdAirline });
+                await instance.voteToAcceptRequest(secondCandidateAirline, { from: secondAirline });
+                await instance.voteToAcceptRequest(secondCandidateAirline, { from: thirdAirline });
 
                 const airlines = parseAirlines(await instance.getAllAirlines());
 
@@ -158,9 +158,9 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
 
                 expect(isAirline).to.be.false;
 
-                await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: secondAirline });
-                await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: thirdAirline });
-                await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: fourthAirline });
+                await instance.voteToRejectRequest(thirdCandidateAirline, { from: secondAirline });
+                await instance.voteToRejectRequest(thirdCandidateAirline, { from: thirdAirline });
+                await instance.voteToRejectRequest(thirdCandidateAirline, { from: fourthAirline });
 
                 const airlines = parseAirlines(await instance.getAllAirlines());
 
@@ -169,7 +169,7 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
 
             it('should not allow voting for request that is completed', async () => {
                 try {
-                    await instance.rejectAirlineJoinRequest(thirdCandidateAirline, { from: firstCandidateAirline });
+                    await instance.voteToRejectRequest(thirdCandidateAirline, { from: firstCandidateAirline });
                     assert.fail('should throw error');
                 } catch (e) {
                     assert.equal(e.reason, 'Must be in PENDING state.');

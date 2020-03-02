@@ -27,7 +27,7 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     mapping(bytes32 => Flight) private flights;
 
 
-    constructor(bytes32 name, address account) FlightSuretyAirlines(name, account) public {
+    constructor(bytes32 name, address account, address dataContractAddress) FlightSuretyAirlines(name, account, dataContractAddress) public {
     }
 
     /**
