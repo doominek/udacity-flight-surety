@@ -6,7 +6,7 @@ import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
 
 import "./FlightSuretyInterfaces.sol";
 
-contract FlightSuretyDataAirlines is FlightSuretyDataContract {
+contract FlightSuretyDataAirlines is FlightSuretyAirlinesDataContract {
     struct Airline {
         bytes32 name;
         address account;

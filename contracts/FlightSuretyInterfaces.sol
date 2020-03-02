@@ -1,7 +1,7 @@
 pragma solidity ^0.5.16;
 
 
-interface FlightSuretyDataContract {
+interface FlightSuretyAirlinesDataContract {
 
     function getAirline(address addr) external view returns (bytes32 name, address account, uint date, bool paid);
 

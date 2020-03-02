@@ -48,70 +48,70 @@ contract FlightSuretyAirlines is AirlineRole {
     uint private constant AIRLINE_FUNDING_FEE = 1 ether;
     uint16 private constant MIN_CONSENSUS_PERCENTAGE = 50;
 
-    FlightSuretyDataContract private flightSuretyData;
+    FlightSuretyAirlinesDataContract private flightSuretyAirlinesData;
 
     constructor(bytes32 name, address account, address dataContractAddress) AirlineRole(account) public {
-        flightSuretyData = FlightSuretyDataContract(dataContractAddress);
-        flightSuretyData.addAirline(name, account);
+        flightSuretyAirlinesData = FlightSuretyAirlinesDataContract(dataContractAddress);
+        flightSuretyAirlinesData.addAirline(name, account);
     }
 
     modifier notVoted(address airline) {
-        require(flightSuretyData.requestNotVoted(airline, msg.sender), "Already voted.");
+        require(flightSuretyAirlinesData.requestNotVoted(airline, msg.sender), "Already voted.");
         _;
     }
 
     modifier pending(address airline) {
-        require(flightSuretyData.requestIsPending(airline), "Must be in PENDING state.");
+        require(flightSuretyAirlinesData.requestIsPending(airline), "Must be in PENDING state.");
         _;
     }
 
     modifier whenFundingFeePaid() {
-        require(flightSuretyData.isFundingFeePaid(msg.sender), "Funding fee not paid");
+        require(flightSuretyAirlinesData.isFundingFeePaid(msg.sender), "Funding fee not paid");
         _;
     }
 
     function registerAirline(bytes32 name, address account) public onlyAirline whenFundingFeePaid {
-        if (flightSuretyData.numberOfAirlines() < 4) {
-            flightSuretyData.addAirline(name, account);
+        if (flightSuretyAirlinesData.numberOfAirlines() < 4) {
+            flightSuretyAirlinesData.addAirline(name, account);
             assignAirlineRole(account);
         } else {
-            flightSuretyData.createRequest(name, account);
-            flightSuretyData.voteToAcceptRequest(account);
+            flightSuretyAirlinesData.createRequest(name, account);
+            flightSuretyAirlinesData.voteToAcceptRequest(account);
         }
     }
 
     function tryFinalizeRequest(address requester) internal {
-        if (flightSuretyData.requestAcceptancePercentage(requester) >= MIN_CONSENSUS_PERCENTAGE) {
-            flightSuretyData.acceptRequest(requester);
+        if (flightSuretyAirlinesData.requestAcceptancePercentage(requester) >= MIN_CONSENSUS_PERCENTAGE) {
+            flightSuretyAirlinesData.acceptRequest(requester);
             assignAirlineRole(requester);
-        } else if (flightSuretyData.requestRejectionPercentage(requester) >= MIN_CONSENSUS_PERCENTAGE) {
-            flightSuretyData.rejectRequest(requester);
+        } else if (flightSuretyAirlinesData.requestRejectionPercentage(requester) >= MIN_CONSENSUS_PERCENTAGE) {
+            flightSuretyAirlinesData.rejectRequest(requester);
         }
     }
 
     function voteToAcceptRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
-        flightSuretyData.voteToAcceptRequest(requester);
+        flightSuretyAirlinesData.voteToAcceptRequest(requester);
         tryFinalizeRequest(requester);
     }
 
     function voteToRejectRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
-        flightSuretyData.voteToRejectRequest(requester);
+        flightSuretyAirlinesData.voteToRejectRequest(requester);
         tryFinalizeRequest(requester);
     }
 
     function submitFundingFee() payable external onlyAirline {
         require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
-        require(!flightSuretyData.isFundingFeePaid(msg.sender), "Funding fee already submitted.");
+        require(!flightSuretyAirlinesData.isFundingFeePaid(msg.sender), "Funding fee already submitted.");
 
-        flightSuretyData.markFundingFeePaymentComplete(msg.sender);
+        flightSuretyAirlinesData.markFundingFeePaymentComplete(msg.sender);
     }
 
     function getAirline(address addr) external view returns (bytes32 name, address account, uint date, bool paid) {
-        return flightSuretyData.getAirline(addr);
+        return flightSuretyAirlinesData.getAirline(addr);
     }
 
     function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
-        return flightSuretyData.getAllAirlines();
+        return flightSuretyAirlinesData.getAllAirlines();
     }
 }
 
