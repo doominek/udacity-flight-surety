@@ -6,7 +6,7 @@ import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
 
 import "./FlightSuretyInterfaces.sol";
 
-contract FlightSuretyDataAirlines is FlightSuretyAirlinesDataContract {
+contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
     struct Airline {
         bytes32 name;
         address account;
@@ -142,7 +142,7 @@ contract FlightSuretyDataAirlines is FlightSuretyAirlinesDataContract {
     }
 }
 
-contract FlightSuretyDataOracles is FlightSuretyOraclesDataContract {
+contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
@@ -283,20 +283,11 @@ contract AuthorizedCallerRole {
     }
 }
 
-contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyDataAirlines, FlightSuretyDataOracles {
+contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyAirlinesData, FlightSuretyOraclesData {
     using SafeMath for uint256;
 
     constructor() public {
     }
-
-    /**
-     * @dev Add an airline to the registration queue
-     *      Can only be called from FlightSuretyApp contract
-     *
-     */
-    function registerAirline() external pure {
-    }
-
 
     /**
      * @dev Buy insurance for a flight
@@ -325,10 +316,6 @@ contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyDataAirl
      *
      */
     function fund() public payable {
-    }
-
-    function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns (bytes32){
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
     /**
