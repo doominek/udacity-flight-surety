@@ -1,6 +1,7 @@
 pragma solidity ^0.5.16;
 
 import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
+import "./FlightSuretyInterfaces.sol";
 
 contract AirlineRole {
     using Roles for Roles.Role;
@@ -44,147 +45,74 @@ contract AirlineRole {
 
 contract FlightSuretyAirlines is AirlineRole {
 
-    uint constant AIRLINE_FUNDING_FEE = 1 ether;
+    uint private constant AIRLINE_FUNDING_FEE = 1 ether;
+    uint16 private constant MIN_CONSENSUS_PERCENTAGE = 50;
 
-    constructor(bytes32 name, address account) AirlineRole(account) public {
-        addAirline(name, account);
+    FlightSuretyAirlinesDataContract private flightSuretyAirlinesData;
+
+    constructor(bytes32 name, address account, address dataContractAddress) AirlineRole(account) public {
+        flightSuretyAirlinesData = FlightSuretyAirlinesDataContract(dataContractAddress);
+        flightSuretyAirlinesData.addAirline(name, account);
     }
-
-    struct Airline {
-        bytes32 name;
-        address account;
-        uint date;
-        bool paid;
-    }
-
-    Airline[] public airlines;
-    mapping(address => uint) private airlineIndexByAccount;
-
-    enum VoteStatus {
-        NONE,
-        ACCEPT,
-        REJECT
-    }
-
-    enum RequestStatus {
-        PENDING,
-        ACCEPTED,
-        REJECTED
-    }
-
-    struct AirlineJoinRequest {
-        bytes32 name;
-        mapping(address => VoteStatus) votes;
-        uint8 totalAccepted;
-        uint8 totalRejected;
-        RequestStatus status;
-    }
-
-    mapping(address => AirlineJoinRequest) public requests;
 
     modifier notVoted(address airline) {
-        require(requests[airline].votes[msg.sender] == VoteStatus.NONE, "Already voted.");
+        require(flightSuretyAirlinesData.requestNotVoted(airline, msg.sender), "Already voted.");
         _;
     }
 
     modifier pending(address airline) {
-        require(requests[airline].status == RequestStatus.PENDING, "Must be in PENDING state.");
+        require(flightSuretyAirlinesData.requestIsPending(airline), "Must be in PENDING state.");
         _;
     }
 
     modifier whenFundingFeePaid() {
-        require(isFundingFeePaid(), "Funding fee not paid");
+        require(flightSuretyAirlinesData.isFundingFeePaid(msg.sender), "Funding fee not paid");
         _;
     }
 
     function registerAirline(bytes32 name, address account) public onlyAirline whenFundingFeePaid {
-        if (airlines.length < 4) {
-            addAirline(name, account);
+        if (flightSuretyAirlinesData.numberOfAirlines() < 4) {
+            flightSuretyAirlinesData.addAirline(name, account);
             assignAirlineRole(account);
         } else {
-            createRequest(name, account);
-            acceptAirlineJoinRequest(account);
+            flightSuretyAirlinesData.createRequest(name, account);
+            flightSuretyAirlinesData.voteToAcceptRequest(account);
         }
     }
 
-    function addAirline(bytes32 name, address account) internal {
-        airlineIndexByAccount[account] = airlines.length;
-        Airline memory airline = Airline({
-            name : name,
-            account : account,
-            date : now,
-            paid : false
-            });
-        airlines.push(airline);
-    }
-
-    function createRequest(bytes32 name, address requester) internal {
-        AirlineJoinRequest memory request = AirlineJoinRequest({
-            name : name,
-            totalAccepted : 0,
-            totalRejected : 0,
-            status : RequestStatus.PENDING
-            });
-        requests[requester] = request;
-    }
-
-    function tryFinalizeRequest(AirlineJoinRequest storage request, address requester) internal {
-        if (uint16(request.totalAccepted) * 100 / airlines.length >= 50) {
-            request.status = RequestStatus.ACCEPTED;
-            addAirline(request.name, requester);
+    function tryFinalizeRequest(address requester) internal {
+        if (flightSuretyAirlinesData.requestAcceptancePercentage(requester) >= MIN_CONSENSUS_PERCENTAGE) {
+            flightSuretyAirlinesData.acceptRequest(requester);
             assignAirlineRole(requester);
-        } else if (uint16(request.totalRejected) * 100 / airlines.length >= 50) {
-            request.status = RequestStatus.REJECTED;
+        } else if (flightSuretyAirlinesData.requestRejectionPercentage(requester) >= MIN_CONSENSUS_PERCENTAGE) {
+            flightSuretyAirlinesData.rejectRequest(requester);
         }
     }
 
-    function acceptAirlineJoinRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
-        AirlineJoinRequest storage request = requests[requester];
-        request.votes[msg.sender] = VoteStatus.ACCEPT;
-        request.totalAccepted += 1;
-        tryFinalizeRequest(request, requester);
+    function voteToAcceptRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+        flightSuretyAirlinesData.voteToAcceptRequest(requester);
+        tryFinalizeRequest(requester);
     }
 
-    function rejectAirlineJoinRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
-        AirlineJoinRequest storage request = requests[requester];
-        request.votes[msg.sender] = VoteStatus.REJECT;
-        request.totalRejected += 1;
-        tryFinalizeRequest(request, requester);
+    function voteToRejectRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+        flightSuretyAirlinesData.voteToRejectRequest(requester);
+        tryFinalizeRequest(requester);
     }
 
     function submitFundingFee() payable external onlyAirline {
         require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
-        require(!isFundingFeePaid(), "Funding fee already submitted.");
+        require(!flightSuretyAirlinesData.isFundingFeePaid(msg.sender), "Funding fee already submitted.");
 
-        Airline storage airline = airlines[airlineIndexByAccount[msg.sender]];
-        airline.paid = true;
-    }
-
-    function isFundingFeePaid() internal view returns (bool) {
-        return airlines[airlineIndexByAccount[msg.sender]].paid;
+        flightSuretyAirlinesData.markFundingFeePaymentComplete(msg.sender);
     }
 
     function getAirline(address addr) external view returns (bytes32 name, address account, uint date, bool paid) {
-        Airline storage airline = airlines[airlineIndexByAccount[addr]];
-
-        return (airline.name, airline.account, airline.date, airline.paid);
+        return flightSuretyAirlinesData.getAirline(addr);
     }
 
     function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
-        bytes32[] memory names = new bytes32[](airlines.length);
-        address[] memory accounts = new address[](airlines.length);
-        uint[] memory dates = new uint[](airlines.length);
-        bool[] memory paid = new bool[](airlines.length);
-
-        for (uint i = 0; i < airlines.length; i++) {
-            Airline storage airline = airlines[i];
-            names[i] = bytes32(airline.name);
-            accounts[i] = airline.account;
-            dates[i] = airline.date;
-            paid[i] = airline.paid;
-
-        }
-
-        return (names, accounts, dates, paid);
+        return flightSuretyAirlinesData.getAllAirlines();
     }
 }
+
+

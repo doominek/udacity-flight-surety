@@ -5,6 +5,7 @@ import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
 import "./FlightSuretyAirlines.sol";
+import "./FlightSuretyInterfaces.sol";
 
 contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     using SafeMath for uint256;
@@ -26,8 +27,10 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
     mapping(bytes32 => Flight) private flights;
 
+    FlightSuretyOraclesDataContract flightSuretyOraclesData;
 
-    constructor(bytes32 name, address account) FlightSuretyAirlines(name, account) public {
+    constructor(bytes32 name, address account, address dataContractAddress) FlightSuretyAirlines(name, account, dataContractAddress) public {
+        flightSuretyOraclesData = FlightSuretyOraclesDataContract(dataContractAddress);
     }
 
     /**
@@ -35,40 +38,23 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
      *
      */
     function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal {
-        bytes32 key = getFlightKey(airline, flight, timestamp);
-
-        Flight storage flightData = flights[key];
-        flightData.isRegistered = true;
-        flightData.statusCode = statusCode;
-        flightData.updatedTimestamp = now;
-        flightData.airline = airline;
+        flightSuretyOraclesData.addFlight(airline, flight, timestamp, statusCode);
     }
 
     function getFlight(address airline, string calldata flight, uint256 timestamp) view external
-        returns (bool isRegistered, uint8 statusCode, uint256 updatedTimestamp) {
-        bytes32 key = getFlightKey(airline, flight, timestamp);
-        Flight storage flightData = flights[key];
-
-        return (flightData.isRegistered, flightData.statusCode, flightData.updatedTimestamp);
+    returns (bool isRegistered, uint8 statusCode, uint256 updatedTimestamp) {
+        return flightSuretyOraclesData.getFlight(airline, flight, timestamp);
     }
-
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(address airline, string calldata flight, uint256 timestamp) external {
         uint8 index = getRandomIndex(msg.sender, keccak256(abi.encode(airline, flight, timestamp)));
 
         // Generate a unique key for storing the request
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
-        oracleResponses[key] = ResponseInfo({
-            requester : msg.sender,
-            isOpen : true
-        });
+        flightSuretyOraclesData.addOracleResponseInfo(index, airline, flight, timestamp, msg.sender);
 
         emit OracleRequest(index, airline, flight, timestamp);
     }
-
-
-    // region ORACLE MANAGEMENT
 
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;
@@ -119,55 +105,36 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
-        oracles[msg.sender] = Oracle({
-            isRegistered : true,
-            indexes : indexes
-            });
+        flightSuretyOraclesData.registerOracle(msg.sender, indexes);
     }
 
     function getMyIndexes() view external returns (uint8[3] memory) {
-        require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
+        require(flightSuretyOraclesData.isOracleRegistered(msg.sender), "Not registered as an oracle");
 
-        return oracles[msg.sender].indexes;
+        return flightSuretyOraclesData.getOracleIndexes(msg.sender);
     }
 
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
     // time of registration (i.e. uninvited oracles are not welcome)
-    function submitOracleResponse(
-        uint8 index,
-        address airline,
-        string calldata flight,
-        uint256 timestamp,
-        uint8 statusCode) external whenNotPaused {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index),
-            "Index does not match oracle request");
+    function submitOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp, uint8 statusCode) external whenNotPaused {
+        require(flightSuretyOraclesData.isIndexAssignedToOracle(index, msg.sender), "Index does not match oracle request");
 
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
-        ResponseInfo storage responseInfo = oracleResponses[key];
+        require(flightSuretyOraclesData.isOracleResponseInfoOpen(index, airline, flight, timestamp), "Flight or timestamp do not match oracle request");
 
-        require(responseInfo.isOpen, "Flight or timestamp do not match oracle request");
-
-        responseInfo.responses[statusCode].push(msg.sender);
+        flightSuretyOraclesData.registerOracleResponse(index, airline, flight, timestamp, statusCode, msg.sender);
         emit OracleReport(airline, flight, timestamp, statusCode);
 
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
-        if (responseInfo.responses[statusCode].length >= MIN_RESPONSES) {
-            responseInfo.isOpen = false;
+        if (flightSuretyOraclesData.getOracleResponseCountWithStatus(index, airline, flight, timestamp, statusCode) >= MIN_RESPONSES) {
+            flightSuretyOraclesData.closeOracleResponse(index, airline, flight, timestamp);
 
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
         }
-    }
-
-    function getFlightKey(
-        address airline,
-        string memory flight,
-        uint256 timestamp) pure internal returns (bytes32) {
-        return keccak256(abi.encode(airline, flight, timestamp));
     }
 
     // Returns array of three non-duplicating integers from 0-9
