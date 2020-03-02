@@ -142,6 +142,123 @@ contract FlightSuretyDataAirlines is FlightSuretyDataContract {
     }
 }
 
+contract FlightSuretyDataOracles is FlightSuretyOraclesDataContract {
+    struct Flight {
+        bool isRegistered;
+        uint8 statusCode;
+        uint256 updatedTimestamp;
+        address airline;
+    }
+
+    mapping(bytes32 => Flight) private flights;
+
+    function addFlight(address airline, string calldata flight, uint256 timestamp, uint8 statusCode) external {
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+
+        Flight storage flightData = flights[key];
+        flightData.isRegistered = true;
+        flightData.statusCode = statusCode;
+        flightData.updatedTimestamp = now;
+        flightData.airline = airline;
+    }
+
+    function getFlight(address airline, string calldata flight, uint256 timestamp) view external
+    returns (bool isRegistered, uint8 statusCode, uint256 updatedTimestamp) {
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+        Flight storage flightData = flights[key];
+
+        return (flightData.isRegistered, flightData.statusCode, flightData.updatedTimestamp);
+    }
+
+
+    function addOracleResponseInfo(uint8 index, address airline, string calldata flight, uint256 timestamp, address requester) external {
+        bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
+
+        oracleResponses[key] = ResponseInfo({
+            requester : requester,
+            isOpen : true
+            });
+    }
+
+
+    // Incremented to add pseudo-randomness at various points
+    uint8 private nonce = 0;
+
+    // Fee to be paid when registering oracle
+    uint256 public constant ORACLE_REGISTRATION_FEE = 1 ether;
+
+    // Number of oracles that must respond for valid status
+    uint256 private constant MIN_RESPONSES = 3;
+
+
+    struct Oracle {
+        bool isRegistered;
+        uint8[3] indexes;
+    }
+
+    // Track all registered oracles
+    mapping(address => Oracle) private oracles;
+
+    // Model for responses from oracles
+    struct ResponseInfo {
+        address requester;                              // Account that requested status
+        bool isOpen;                                    // If open, oracle responses are accepted
+        mapping(uint8 => address[]) responses;          // Mapping key is the status code reported
+        // This lets us group responses and identify
+        // the response that majority of the oracles
+    }
+
+    // Track all oracle responses
+    // Key = hash(index, flight, timestamp)
+    mapping(bytes32 => ResponseInfo) private oracleResponses;
+
+    function registerOracle(address oracle, uint8[3] calldata indexes) external {
+        oracles[oracle] = Oracle({
+            isRegistered : true,
+            indexes : indexes
+            });
+    }
+
+    function getOracleIndexes(address oracle) view external returns (uint8[3] memory) {
+        return oracles[oracle].indexes;
+    }
+
+    function isOracleRegistered(address oracle) view external returns (bool) {
+        return oracles[oracle].isRegistered;
+    }
+
+    function isIndexAssignedToOracle(uint8 index, address oracle) view external returns (bool) {
+        return (oracles[oracle].indexes[0] == index) || (oracles[oracle].indexes[1] == index) || (oracles[oracle].indexes[2] == index);
+    }
+
+    function isOracleResponseInfoOpen(uint8 index, address airline, string calldata flight, uint256 timestamp) external view returns (bool) {
+        bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
+        return oracleResponses[key].isOpen;
+    }
+
+    function registerOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp, uint8 statusCode, address oracle) external {
+        bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
+        oracleResponses[key].responses[statusCode].push(oracle);
+    }
+
+    function getOracleResponseCountWithStatus(uint8 index, address airline, string calldata flight, uint256 timestamp, uint8 statusCode) external view returns (uint) {
+        bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
+        return oracleResponses[key].responses[statusCode].length;
+    }
+
+    function closeOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp) external {
+        bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
+        oracleResponses[key].isOpen = false;
+    }
+
+    function getOracleResponseInfoKey(uint8 index, address airline, string memory flight, uint256 timestamp) pure internal returns (bytes32) {
+        return keccak256(abi.encode(index, airline, flight, timestamp));
+    }
+
+    function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns (bytes32) {
+        return keccak256(abi.encode(airline, flight, timestamp));
+    }
+}
 
 contract AuthorizedCallerRole {
     using Roles for Roles.Role;
@@ -166,7 +283,7 @@ contract AuthorizedCallerRole {
     }
 }
 
-contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyDataAirlines {
+contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyDataAirlines, FlightSuretyDataOracles {
     using SafeMath for uint256;
 
     constructor() public {
