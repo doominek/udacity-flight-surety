@@ -7,6 +7,7 @@ import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./FlightSuretyAirlines.sol";
 import "./FlightSuretyInterfaces.sol";
 
+
 contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     using SafeMath for uint256;
 
@@ -29,7 +30,10 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
     FlightSuretyOraclesDataContract flightSuretyOraclesData;
 
-    constructor(bytes32 name, address account, address dataContractAddress) FlightSuretyAirlines(name, account, dataContractAddress) public {
+    constructor(bytes32 name, address account, address dataContractAddress)
+        public
+        FlightSuretyAirlines(name, account, dataContractAddress)
+    {
         flightSuretyOraclesData = FlightSuretyOraclesDataContract(dataContractAddress);
     }
 
@@ -41,8 +45,11 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
         flightSuretyOraclesData.addFlight(airline, flight, timestamp, statusCode);
     }
 
-    function getFlight(address airline, string calldata flight, uint256 timestamp) view external
-    returns (bool isRegistered, uint8 statusCode, uint256 updatedTimestamp) {
+    function getFlight(address airline, string calldata flight, uint256 timestamp)
+        external
+        view
+        returns (bool isRegistered, uint8 statusCode, uint256 updatedTimestamp)
+    {
         return flightSuretyOraclesData.getFlight(airline, flight, timestamp);
     }
 
@@ -65,7 +72,6 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
 
-
     struct Oracle {
         bool isRegistered;
         uint8[3] indexes;
@@ -76,9 +82,9 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
     // Model for responses from oracles
     struct ResponseInfo {
-        address requester;                              // Account that requested status
-        bool isOpen;                                    // If open, oracle responses are accepted
-        mapping(uint8 => address[]) responses;          // Mapping key is the status code reported
+        address requester; // Account that requested status
+        bool isOpen; // If open, oracle responses are accepted
+        mapping(uint8 => address[]) responses; // Mapping key is the status code reported
         // This lets us group responses and identify
         // the response that majority of the oracles
     }
@@ -97,7 +103,6 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     // they fetch data and submit a response
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
 
-
     // Register an oracle with the contract
     function registerOracle() external payable whenNotPaused {
         // Require registration fee
@@ -108,7 +113,7 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
         flightSuretyOraclesData.registerOracle(msg.sender, indexes);
     }
 
-    function getMyIndexes() view external returns (uint8[3] memory) {
+    function getMyIndexes() external view returns (uint8[3] memory) {
         require(flightSuretyOraclesData.isOracleRegistered(msg.sender), "Not registered as an oracle");
 
         return flightSuretyOraclesData.getOracleIndexes(msg.sender);
@@ -118,10 +123,16 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
     // time of registration (i.e. uninvited oracles are not welcome)
-    function submitOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp, uint8 statusCode) external whenNotPaused {
+    function submitOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp, uint8 statusCode)
+        external
+        whenNotPaused
+    {
         require(flightSuretyOraclesData.isIndexAssignedToOracle(index, msg.sender), "Index does not match oracle request");
 
-        require(flightSuretyOraclesData.isOracleResponseInfoOpen(index, airline, flight, timestamp), "Flight or timestamp do not match oracle request");
+        require(
+            flightSuretyOraclesData.isOracleResponseInfoOpen(index, airline, flight, timestamp),
+            "Flight or timestamp do not match oracle request"
+        );
 
         flightSuretyOraclesData.registerOracleResponse(index, airline, flight, timestamp, statusCode, msg.sender);
         emit OracleReport(airline, flight, timestamp, statusCode);
@@ -169,5 +180,4 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
 
         return random;
     }
-
-}   
+}

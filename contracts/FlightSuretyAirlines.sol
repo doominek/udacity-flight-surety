@@ -3,6 +3,7 @@ pragma solidity ^0.5.16;
 import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
 import "./FlightSuretyInterfaces.sol";
 
+
 contract AirlineRole {
     using Roles for Roles.Role;
 
@@ -11,7 +12,7 @@ contract AirlineRole {
 
     Roles.Role private airlineAccounts;
 
-    constructor (address account) internal {
+    constructor(address account) internal {
         _addAirline(account);
     }
 
@@ -43,14 +44,14 @@ contract AirlineRole {
     }
 }
 
-contract FlightSuretyAirlines is AirlineRole {
 
-    uint private constant AIRLINE_FUNDING_FEE = 1 ether;
+contract FlightSuretyAirlines is AirlineRole {
+    uint256 private constant AIRLINE_FUNDING_FEE = 1 ether;
     uint16 private constant MIN_CONSENSUS_PERCENTAGE = 50;
 
     FlightSuretyAirlinesDataContract private flightSuretyAirlinesData;
 
-    constructor(bytes32 name, address account, address dataContractAddress) AirlineRole(account) public {
+    constructor(bytes32 name, address account, address dataContractAddress) public AirlineRole(account) {
         flightSuretyAirlinesData = FlightSuretyAirlinesDataContract(dataContractAddress);
         flightSuretyAirlinesData.addAirline(name, account);
     }
@@ -99,20 +100,22 @@ contract FlightSuretyAirlines is AirlineRole {
         tryFinalizeRequest(requester);
     }
 
-    function submitFundingFee() payable external onlyAirline {
+    function submitFundingFee() external payable onlyAirline {
         require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
         require(!flightSuretyAirlinesData.isFundingFeePaid(msg.sender), "Funding fee already submitted.");
 
         flightSuretyAirlinesData.markFundingFeePaymentComplete(msg.sender);
     }
 
-    function getAirline(address addr) external view returns (bytes32 name, address account, uint date, bool paid) {
+    function getAirline(address addr) external view returns (bytes32 name, address account, uint256 date, bool paid) {
         return flightSuretyAirlinesData.getAirline(addr);
     }
 
-    function getAllAirlines() public view returns (bytes32[] memory _names, address[] memory _accounts, uint[] memory _dates, bool[] memory _paid) {
+    function getAllAirlines()
+        public
+        view
+        returns (bytes32[] memory _names, address[] memory _accounts, uint256[] memory _dates, bool[] memory _paid)
+    {
         return flightSuretyAirlinesData.getAllAirlines();
     }
 }
-
-
