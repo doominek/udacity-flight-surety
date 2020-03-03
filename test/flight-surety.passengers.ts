@@ -13,27 +13,22 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
         passenger1
     ] = accounts;
 
-    const flight1 = {
-        airline,
-        flight: web3.utils.utf8ToHex('AB-100'),
-        date: moment().unix()
-    };
-    const flight2 = web3.utils.utf8ToHex('AB-200');
+    const flight1 = web3.utils.soliditySha3(airline, 'DF-100', moment().unix());
 
     before('setup contract', async () => {
         contract = await FlightSuretyApp.deployed();
     });
 
     describe('when buying insurance', () => {
-        it('should fail when not enough paid', async () => {
+        it('should fail when more than 1 ether paid', async () => {
             try {
-                await contract.buyInsurance(flight1.airline, flight1.flight, flight1.date, {
+                await contract.purchaseInsurance(flight1, {
                     from: passenger1,
-                    value: '100'
+                    value: web3.utils.toWei('1.1', 'ether')
                 });
                 assert.fail('should throw error');
             } catch (e) {
-                expect(e.reason).to.eq('Not enough');
+                expect(e.reason).to.eq('Maximum allowed insurance fee is 1 ether.');
             }
         });
     });
