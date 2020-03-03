@@ -6,30 +6,30 @@ const FlightSuretyApp = artifacts.require('FlightSuretyApp');
 
 interface Insurance {
     flight: string;
-    amountPaid: string;
-    amountForPayout: string;
+    paidAmount: string;
+    creditAmount: string;
     closed: boolean;
     lastModifiedDate: moment.Moment
 }
 
 function parseInsurance(data: any[]): Insurance {
-    const [ flight, amountPaid, amountForPayout, closed, lastModifiedDate ] = data;
+    const [ flight, paidAmount, creditAmount, closed, lastModifiedDate ] = data;
     return {
         flight,
-        amountPaid,
-        amountForPayout,
+        paidAmount,
+        creditAmount,
         closed,
         lastModifiedDate: moment.unix(lastModifiedDate)
     }
 }
 
-function parseInsurances(insurancesData: any[]) {
-    return _.range(insurancesData[0].length)
-            .map(idx => parseInsurance([ insurancesData[0][idx],
-                                         insurancesData[1][idx],
-                                         insurancesData[2][idx],
-                                         insurancesData[3][idx],
-                                         insurancesData[4][idx] ]));
+function parseInsurances(data: any[]) {
+    return _.range(data[0].length)
+            .map(idx => parseInsurance([ data[0][idx],
+                                         data[1][idx],
+                                         data[2][idx],
+                                         data[3][idx],
+                                         data[4][idx] ]));
 }
 
 contract('FlightSuretyApp - Passengers', async (accounts) => {
@@ -80,7 +80,7 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
                 expect(insurances).to.have.lengthOf(1);
                 const insurance = insurances[0];
                 expect(insurance.closed).to.be.false;
-                expect(insurance.amountPaid.toString()).to.be.eq(paidFee.toString());
+                expect(insurance.paidAmount.toString()).to.be.eq(paidFee.toString());
             });
 
             it('should increase contract balance with the amount paid', async () => {

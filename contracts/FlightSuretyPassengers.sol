@@ -7,8 +7,8 @@ contract FlightSuretyPassengers {
     struct Insurance {
         address insured;
         bytes32 flight;
-        uint256 amountPaid;
-        uint256 amountForPayout;
+        uint256 paidAmount;
+        uint256 creditAmount;
         bool closed;
         uint256 lastModifiedDate;
     }
@@ -25,8 +25,8 @@ contract FlightSuretyPassengers {
         Insurance memory insurance = Insurance({
             insured: msg.sender,
             flight: flightKey,
-            amountPaid: msg.value,
-            amountForPayout: 0,
+            paidAmount: msg.value,
+            creditAmount: 0,
             closed: false,
             lastModifiedDate: now
         });
@@ -39,29 +39,29 @@ contract FlightSuretyPassengers {
         view
         returns (
             bytes32[] memory flight,
-            uint256[] memory amountPaid,
-            uint256[] memory amountForPayout,
+            uint256[] memory paidAmount,
+            uint256[] memory creditAmount,
             bool[] memory closed,
             uint256[] memory lastModifiedDate
         )
     {
         uint256 numOfInsurances = passengerInsurances[msg.sender].length;
         bytes32[] memory flights = new bytes32[](numOfInsurances);
-        uint256[] memory amountsPaid = new uint256[](numOfInsurances);
-        uint256[] memory amountsForPayout = new uint256[](numOfInsurances);
+        uint256[] memory paidAmounts = new uint256[](numOfInsurances);
+        uint256[] memory creditAmounts = new uint256[](numOfInsurances);
         bool[] memory closedStatuses = new bool[](numOfInsurances);
         uint256[] memory lastModifiedDates = new uint256[](numOfInsurances);
 
         for (uint256 i = 0; i < numOfInsurances; i++) {
             Insurance storage insurance = insurances[passengerInsurances[msg.sender][i]];
             flights[i] = insurance.flight;
-            amountsPaid[i] = insurance.amountPaid;
-            amountsForPayout[i] = insurance.amountForPayout;
+            paidAmounts[i] = insurance.paidAmount;
+            creditAmounts[i] = insurance.creditAmount;
             closedStatuses[i] = insurance.closed;
             lastModifiedDates[i] = insurance.lastModifiedDate;
         }
 
-        return (flights, amountsPaid, amountsForPayout, closedStatuses, lastModifiedDates);
+        return (flights, paidAmounts, creditAmounts, closedStatuses, lastModifiedDates);
     }
 
     function getFlightKey(address airline, string memory flight, uint256 timestamp) internal pure returns (bytes32) {
