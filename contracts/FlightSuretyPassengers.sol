@@ -1,10 +1,12 @@
 pragma solidity ^0.5.16;
 
-import "./FlightSuretyInterfaces.sol";
+import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract FlightSuretyPassengers {
-    enum InsuranceStatus { PAID, FOR_PAYOUT, REPAID }
+    using SafeMath for uint256;
+
+    enum InsuranceStatus {PAID, FOR_PAYOUT, REPAID}
 
     struct Insurance {
         address insured;
@@ -18,6 +20,7 @@ contract FlightSuretyPassengers {
     Insurance[] private insurances;
 
     mapping(address => uint256[]) passengerInsurances;
+    mapping(bytes32 => uint256[]) flightInsurances;
 
     uint256 private constant MAX_INSURANCE_FEE = 1 ether;
 
@@ -25,27 +28,28 @@ contract FlightSuretyPassengers {
         require(msg.value <= MAX_INSURANCE_FEE, "Maximum allowed insurance fee is 1 ether.");
 
         Insurance memory insurance = Insurance({
-            insured: msg.sender,
-            flight: flightKey,
-            paidAmount: msg.value,
-            creditAmount: 0,
-            status: InsuranceStatus.PAID,
-            lastModifiedDate: now
-        });
+            insured : msg.sender,
+            flight : flightKey,
+            paidAmount : msg.value,
+            creditAmount : 0,
+            status : InsuranceStatus.PAID,
+            lastModifiedDate : now
+            });
         insurances.push(insurance);
         passengerInsurances[msg.sender].push(insurances.length - 1);
+        flightInsurances[flightKey].push(insurances.length - 1);
     }
 
     function getMyInsurances()
-        external
-        view
-        returns (
-            bytes32[] memory flight,
-            uint256[] memory paidAmount,
-            uint256[] memory creditAmount,
-            InsuranceStatus[] memory status,
-            uint256[] memory lastModifiedDate
-        )
+    external
+    view
+    returns (
+        bytes32[] memory flight,
+        uint256[] memory paidAmount,
+        uint256[] memory creditAmount,
+        InsuranceStatus[] memory status,
+        uint256[] memory lastModifiedDate
+    )
     {
         uint256 numOfInsurances = passengerInsurances[msg.sender].length;
         bytes32[] memory flights = new bytes32[](numOfInsurances);
@@ -66,7 +70,12 @@ contract FlightSuretyPassengers {
         return (flights, paidAmounts, creditAmounts, statuses, lastModifiedDates);
     }
 
-    function getFlightKey(address airline, string memory flight, uint256 timestamp) internal pure returns (bytes32) {
-        return keccak256(abi.encode(airline, flight, timestamp));
+    function creditInsurees(bytes32 flightKey) external {
+        for (uint256 i = 0; i < flightInsurances[flightKey].length; i++) {
+            Insurance storage insurance = insurances[flightInsurances[flightKey][i]];
+            insurance.creditAmount = insurance.paidAmount.mul(150).div(100);
+            insurance.status = InsuranceStatus.FOR_PAYOUT;
+            insurance.lastModifiedDate = now;
+        }
     }
 }

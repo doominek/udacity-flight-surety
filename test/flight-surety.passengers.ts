@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 
 const FlightSuretyApp = artifacts.require('FlightSuretyApp');
 
-enum FlightStatus {
+enum InsuranceStatus {
     PAID, FOR_PAYOUT, REPAID
 }
 
@@ -12,7 +12,7 @@ interface Insurance {
     flight: string;
     paidAmount: string;
     creditAmount: string;
-    status: FlightStatus;
+    status: InsuranceStatus;
     lastModifiedDate: moment.Moment
 }
 
@@ -43,10 +43,12 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
     const [
         owner,
         airline,
-        passenger1
+        passenger1,
+        passenger2
     ] = accounts;
 
     const flight1 = web3.utils.soliditySha3(airline, 'DF-100', moment().unix());
+    const flight2 = web3.utils.soliditySha3(airline, 'DF-200', moment().unix());
 
     before('setup contract', async () => {
         contract = await FlightSuretyApp.deployed();
@@ -76,6 +78,8 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
                     from: passenger1,
                     value: paidFee
                 });
+
+
             });
 
             it('should register new insurance with the amount paid', async () => {
@@ -83,7 +87,7 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
 
                 expect(insurances).to.have.lengthOf(1);
                 const insurance = insurances[0];
-                expect(insurance.status).to.be.eq(FlightStatus.PAID);
+                expect(insurance.status).to.be.eq(InsuranceStatus.PAID);
                 expect(insurance.paidAmount.toString()).to.be.eq(paidFee.toString());
             });
 
@@ -93,6 +97,30 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
 
                 expect(balanceChange.toString()).to.be.eq(paidFee.toString());
             });
+        });
+    });
+
+    describe('when crediting insurees', () => {
+        let insurance: Insurance;
+        before(async () => {
+            await contract.purchaseInsurance(flight2, {
+                from: passenger2,
+                value: web3.utils.toWei('1', 'ether')
+            });
+
+            await contract.creditInsurees(flight1);
+
+            const insurances = parseInsurances(await contract.getMyInsurances({ from: passenger1 }));
+            insurance = insurances[0];
+        });
+
+        it('should calculate and set credit amount', async () => {
+            const expectedCreditAmount = web3.utils.toWei("1.5", "ether");
+
+            expect(insurance.creditAmount.toString()).to.be.eq(expectedCreditAmount.toString());
+        });
+        it('should change status of insurance to FOR_PAYOUT', async () => {
+            expect(insurance.status).to.be.eq(InsuranceStatus.FOR_PAYOUT);
         });
     });
 
