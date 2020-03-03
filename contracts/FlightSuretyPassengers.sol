@@ -13,7 +13,9 @@ contract FlightSuretyPassengers {
         uint256 lastModifiedDate;
     }
 
-    mapping(address => Insurance[]) insurances;
+    Insurance[] private insurances;
+
+    mapping(address => uint256[]) passengerInsurances;
 
     uint256 private constant MAX_INSURANCE_FEE = 1 ether;
 
@@ -28,7 +30,8 @@ contract FlightSuretyPassengers {
             closed: false,
             lastModifiedDate: now
         });
-        insurances[msg.sender].push(insurance);
+        insurances.push(insurance);
+        passengerInsurances[msg.sender].push(insurances.length - 1);
     }
 
     function getMyInsurances()
@@ -42,15 +45,15 @@ contract FlightSuretyPassengers {
             uint256[] memory lastModifiedDate
         )
     {
-        Insurance[] storage sendersInsurances = insurances[msg.sender];
-        bytes32[] memory flights = new bytes32[](sendersInsurances.length);
-        uint256[] memory amountsPaid = new uint256[](sendersInsurances.length);
-        uint256[] memory amountsForPayout = new uint256[](sendersInsurances.length);
-        bool[] memory closedStatuses = new bool[](sendersInsurances.length);
-        uint256[] memory lastModifiedDates = new uint256[](sendersInsurances.length);
+        uint256 numOfInsurances = passengerInsurances[msg.sender].length;
+        bytes32[] memory flights = new bytes32[](numOfInsurances);
+        uint256[] memory amountsPaid = new uint256[](numOfInsurances);
+        uint256[] memory amountsForPayout = new uint256[](numOfInsurances);
+        bool[] memory closedStatuses = new bool[](numOfInsurances);
+        uint256[] memory lastModifiedDates = new uint256[](numOfInsurances);
 
-        for (uint256 i = 0; i < sendersInsurances.length; i++) {
-            Insurance storage insurance = sendersInsurances[i];
+        for (uint256 i = 0; i < numOfInsurances; i++) {
+            Insurance storage insurance = insurances[passengerInsurances[msg.sender][i]];
             flights[i] = insurance.flight;
             amountsPaid[i] = insurance.amountPaid;
             amountsForPayout[i] = insurance.amountForPayout;
