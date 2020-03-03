@@ -4,21 +4,25 @@ import * as _ from 'lodash';
 
 const FlightSuretyApp = artifacts.require('FlightSuretyApp');
 
+enum FlightStatus {
+    PAID, FOR_PAYOUT, REPAID
+}
+
 interface Insurance {
     flight: string;
     paidAmount: string;
     creditAmount: string;
-    closed: boolean;
+    status: FlightStatus;
     lastModifiedDate: moment.Moment
 }
 
 function parseInsurance(data: any[]): Insurance {
-    const [ flight, paidAmount, creditAmount, closed, lastModifiedDate ] = data;
+    const [ flight, paidAmount, creditAmount, status, lastModifiedDate ] = data;
     return {
         flight,
         paidAmount,
         creditAmount,
-        closed,
+        status: status.toNumber(),
         lastModifiedDate: moment.unix(lastModifiedDate)
     }
 }
@@ -79,7 +83,7 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
 
                 expect(insurances).to.have.lengthOf(1);
                 const insurance = insurances[0];
-                expect(insurance.closed).to.be.false;
+                expect(insurance.status).to.be.eq(FlightStatus.PAID);
                 expect(insurance.paidAmount.toString()).to.be.eq(paidFee.toString());
             });
 

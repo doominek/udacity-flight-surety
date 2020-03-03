@@ -4,12 +4,14 @@ import "./FlightSuretyInterfaces.sol";
 
 
 contract FlightSuretyPassengers {
+    enum InsuranceStatus { PAID, FOR_PAYOUT, REPAID }
+
     struct Insurance {
         address insured;
         bytes32 flight;
         uint256 paidAmount;
         uint256 creditAmount;
-        bool closed;
+        InsuranceStatus status;
         uint256 lastModifiedDate;
     }
 
@@ -27,7 +29,7 @@ contract FlightSuretyPassengers {
             flight: flightKey,
             paidAmount: msg.value,
             creditAmount: 0,
-            closed: false,
+            status: InsuranceStatus.PAID,
             lastModifiedDate: now
         });
         insurances.push(insurance);
@@ -41,7 +43,7 @@ contract FlightSuretyPassengers {
             bytes32[] memory flight,
             uint256[] memory paidAmount,
             uint256[] memory creditAmount,
-            bool[] memory closed,
+            InsuranceStatus[] memory status,
             uint256[] memory lastModifiedDate
         )
     {
@@ -49,7 +51,7 @@ contract FlightSuretyPassengers {
         bytes32[] memory flights = new bytes32[](numOfInsurances);
         uint256[] memory paidAmounts = new uint256[](numOfInsurances);
         uint256[] memory creditAmounts = new uint256[](numOfInsurances);
-        bool[] memory closedStatuses = new bool[](numOfInsurances);
+        InsuranceStatus[] memory statuses = new InsuranceStatus[](numOfInsurances);
         uint256[] memory lastModifiedDates = new uint256[](numOfInsurances);
 
         for (uint256 i = 0; i < numOfInsurances; i++) {
@@ -57,11 +59,11 @@ contract FlightSuretyPassengers {
             flights[i] = insurance.flight;
             paidAmounts[i] = insurance.paidAmount;
             creditAmounts[i] = insurance.creditAmount;
-            closedStatuses[i] = insurance.closed;
+            statuses[i] = insurance.status;
             lastModifiedDates[i] = insurance.lastModifiedDate;
         }
 
-        return (flights, paidAmounts, creditAmounts, closedStatuses, lastModifiedDates);
+        return (flights, paidAmounts, creditAmounts, statuses, lastModifiedDates);
     }
 
     function getFlightKey(address airline, string memory flight, uint256 timestamp) internal pure returns (bytes32) {
