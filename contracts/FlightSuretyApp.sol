@@ -6,9 +6,10 @@ import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
 import "./FlightSuretyAirlines.sol";
 import "./FlightSuretyInterfaces.sol";
+import "./FlightSuretyPassengers.sol";
 
 
-contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines {
+contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines, FlightSuretyPassengers {
     using SafeMath for uint256;
 
     // Flight status codees
