@@ -1,33 +1,11 @@
 pragma solidity ^0.5.16;
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
-
 import "./FlightSuretyAirlines.sol";
 import "./FlightSuretyInterfaces.sol";
 import "./FlightSuretyPassengers.sol";
 
 
-contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines, FlightSuretyPassengers {
-    using SafeMath for uint256;
-
-    // Flight status codees
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
-    uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
-    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
-    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-
-    struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 updatedTimestamp;
-        address airline;
-    }
-
-    mapping(bytes32 => Flight) private flights;
+contract FlightSuretyApp is FlightSuretyAirlines, FlightSuretyPassengers {
 
     FlightSuretyOraclesDataContract flightSuretyOraclesData;
 
@@ -64,7 +42,6 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines, FlightSuret
         emit OracleRequest(index, airline, flight, timestamp);
     }
 
-    // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;
 
     // Fee to be paid when registering oracle
@@ -72,27 +49,6 @@ contract FlightSuretyApp is Ownable, Pausable, FlightSuretyAirlines, FlightSuret
 
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
-
-    struct Oracle {
-        bool isRegistered;
-        uint8[3] indexes;
-    }
-
-    // Track all registered oracles
-    mapping(address => Oracle) private oracles;
-
-    // Model for responses from oracles
-    struct ResponseInfo {
-        address requester; // Account that requested status
-        bool isOpen; // If open, oracle responses are accepted
-        mapping(uint8 => address[]) responses; // Mapping key is the status code reported
-        // This lets us group responses and identify
-        // the response that majority of the oracles
-    }
-
-    // Track all oracle responses
-    // Key = hash(index, flight, timestamp)
-    mapping(bytes32 => ResponseInfo) private oracleResponses;
 
     // Event fired each time an oracle submits a response
     event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);

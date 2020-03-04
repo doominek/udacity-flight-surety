@@ -1,7 +1,16 @@
 pragma solidity ^0.5.16;
 
 import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
+import "../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
 import "./FlightSuretyInterfaces.sol";
+
+
+contract FlightSuretyAppBase is Ownable, Pausable {
+    using SafeMath for uint256;
+}
 
 
 contract AirlineRole {
@@ -45,7 +54,7 @@ contract AirlineRole {
 }
 
 
-contract FlightSuretyAirlines is AirlineRole {
+contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
     uint256 private constant AIRLINE_FUNDING_FEE = 1 ether;
     uint8 private constant MIN_AIRLINES_NUMBER_FOR_CONSENSUS = 4;
     uint8 private constant MIN_CONSENSUS_PERCENTAGE = 50;
