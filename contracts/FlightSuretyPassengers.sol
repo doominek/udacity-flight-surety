@@ -33,7 +33,7 @@ contract FlightSuretyPassengers {
             creditAmount: 0,
             status: InsuranceStatus.PAID,
             lastModifiedDate: now
-            });
+        });
         insurances.push(insurance);
         passengerInsurances[msg.sender].push(insurances.length - 1);
         flightInsurances[flightKey].push(insurances.length - 1);
@@ -48,12 +48,7 @@ contract FlightSuretyPassengers {
     function getAllInsurancesForInsured(address insured)
         internal
         view
-        returns (
-            bytes32[] memory flight,
-            uint256[] memory paidAmount,
-            InsuranceStatus[] memory status,
-            uint256[] memory lastModifiedDate
-        )
+        returns (bytes32[] memory flight, uint256[] memory paidAmount, InsuranceStatus[] memory status, uint256[] memory lastModifiedDate)
     {
         uint256 numOfInsurances = passengerInsurances[insured].length;
         bytes32[] memory flights = new bytes32[](numOfInsurances);
@@ -73,14 +68,10 @@ contract FlightSuretyPassengers {
     }
 
     function getMyInsurances()
-    external
-    view
-    returns (
-        bytes32[] memory flight,
-        uint256[] memory paidAmount,
-        InsuranceStatus[] memory status,
-        uint256[] memory lastModifiedDate
-    ) {
+        external
+        view
+        returns (bytes32[] memory flight, uint256[] memory paidAmount, InsuranceStatus[] memory status, uint256[] memory lastModifiedDate)
+    {
         return getAllInsurancesForInsured(msg.sender);
     }
 

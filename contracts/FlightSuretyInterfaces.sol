@@ -75,4 +75,17 @@ interface FlightSuretyOraclesDataContract {
 }
 
 
-interface FlightSuretyPassengersDataContract {}
+interface FlightSuretyPassengersDataContract {
+    function addInsurance(bytes32 flightKey, address insured, uint256 paidAmount) external;
+
+    function getAllInsurances(address insured)
+        external
+        view
+        returns (bytes32[] memory flight, uint256[] memory paidAmount, uint256[] memory status, uint256[] memory lastModifiedDate);
+
+    function setInsuranceForPayout(bytes32 flightKey, uint256 paidAmountPercentMultiplier) external;
+
+    function totalAvailablePayoutAmount(address insured) external view returns (uint256);
+
+    function setInsurancesAsRepaid(address insured) external;
+}

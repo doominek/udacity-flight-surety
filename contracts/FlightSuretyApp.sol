@@ -6,7 +6,6 @@ import "./FlightSuretyPassengers.sol";
 
 
 contract FlightSuretyApp is FlightSuretyAirlines, FlightSuretyPassengers {
-
     FlightSuretyOraclesDataContract flightSuretyOraclesData;
 
     constructor(bytes32 name, address account, address dataContractAddress)
