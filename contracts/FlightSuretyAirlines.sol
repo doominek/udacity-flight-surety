@@ -47,7 +47,8 @@ contract AirlineRole {
 
 contract FlightSuretyAirlines is AirlineRole {
     uint256 private constant AIRLINE_FUNDING_FEE = 1 ether;
-    uint16 private constant MIN_CONSENSUS_PERCENTAGE = 50;
+    uint8 private constant MIN_AIRLINES_NUMBER_FOR_CONSENSUS = 4;
+    uint8 private constant MIN_CONSENSUS_PERCENTAGE = 50;
 
     FlightSuretyAirlinesDataContract private flightSuretyAirlinesData;
 
@@ -72,7 +73,7 @@ contract FlightSuretyAirlines is AirlineRole {
     }
 
     function registerAirline(bytes32 name, address account) public onlyAirline whenFundingFeePaid {
-        if (flightSuretyAirlinesData.numberOfAirlines() < 4) {
+        if (flightSuretyAirlinesData.numberOfAirlines() < MIN_AIRLINES_NUMBER_FOR_CONSENSUS) {
             flightSuretyAirlinesData.addAirline(name, account);
             assignAirlineRole(account);
         } else {

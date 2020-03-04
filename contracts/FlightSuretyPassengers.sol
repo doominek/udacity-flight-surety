@@ -28,28 +28,28 @@ contract FlightSuretyPassengers {
         require(msg.value <= MAX_INSURANCE_FEE, "Maximum allowed insurance fee is 1 ether.");
 
         Insurance memory insurance = Insurance({
-            insured : msg.sender,
-            flight : flightKey,
-            paidAmount : msg.value,
-            creditAmount : 0,
-            status : InsuranceStatus.PAID,
-            lastModifiedDate : now
-            });
+            insured: msg.sender,
+            flight: flightKey,
+            paidAmount: msg.value,
+            creditAmount: 0,
+            status: InsuranceStatus.PAID,
+            lastModifiedDate: now
+        });
         insurances.push(insurance);
         passengerInsurances[msg.sender].push(insurances.length - 1);
         flightInsurances[flightKey].push(insurances.length - 1);
     }
 
     function getMyInsurances()
-    external
-    view
-    returns (
-        bytes32[] memory flight,
-        uint256[] memory paidAmount,
-        uint256[] memory creditAmount,
-        InsuranceStatus[] memory status,
-        uint256[] memory lastModifiedDate
-    )
+        external
+        view
+        returns (
+            bytes32[] memory flight,
+            uint256[] memory paidAmount,
+            uint256[] memory creditAmount,
+            InsuranceStatus[] memory status,
+            uint256[] memory lastModifiedDate
+        )
     {
         uint256 numOfInsurances = passengerInsurances[msg.sender].length;
         bytes32[] memory flights = new bytes32[](numOfInsurances);
