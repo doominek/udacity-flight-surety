@@ -18,17 +18,15 @@ enum InsuranceStatus {
 interface Insurance {
     flight: string;
     paidAmount: string;
-    creditAmount: string;
     status: InsuranceStatus;
     lastModifiedDate: moment.Moment
 }
 
 function parseInsurance(data: any[]): Insurance {
-    const [ flight, paidAmount, creditAmount, status, lastModifiedDate ] = data;
+    const [ flight, paidAmount, status, lastModifiedDate ] = data;
     return {
         flight,
         paidAmount,
-        creditAmount,
         status: status.toNumber(),
         lastModifiedDate: moment.unix(lastModifiedDate)
     }
@@ -39,8 +37,7 @@ function parseInsurances(data: any[]) {
             .map(idx => parseInsurance([ data[0][idx],
                                          data[1][idx],
                                          data[2][idx],
-                                         data[3][idx],
-                                         data[4][idx] ]));
+                                         data[3][idx] ]));
 }
 
 contract('FlightSuretyApp - Passengers', async (accounts) => {
@@ -115,17 +112,12 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
                 value: web3.utils.toWei('1', 'ether')
             });
 
-            await contract.creditInsurees(flight1);
+            await contract.creditInsured(flight1);
 
             const insurances = parseInsurances(await contract.getMyInsurances({ from: passenger1 }));
             insurance = insurances[0];
         });
 
-        it('should calculate and set credit amount', async () => {
-            const expectedCreditAmount = web3.utils.toWei("1.5", "ether");
-
-            expect(insurance.creditAmount.toString()).to.be.eq(expectedCreditAmount.toString());
-        });
         it('should change status of insurance to FOR_PAYOUT', async () => {
             expect(insurance.status).to.be.eq(InsuranceStatus.FOR_PAYOUT);
         });
