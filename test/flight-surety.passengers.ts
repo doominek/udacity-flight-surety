@@ -2,6 +2,13 @@ import { FlightSuretyAppInstance } from '../generated/truffle/contracts';
 import moment from 'moment';
 import * as _ from 'lodash';
 
+const chai = require('chai');
+const BN = require('bn.js');
+
+chai.use(require('chai-bn')(BN));
+const expect = chai.expect;
+
+
 const FlightSuretyApp = artifacts.require('FlightSuretyApp');
 
 enum InsuranceStatus {
@@ -121,6 +128,44 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
         });
         it('should change status of insurance to FOR_PAYOUT', async () => {
             expect(insurance.status).to.be.eq(InsuranceStatus.FOR_PAYOUT);
+        });
+    });
+
+    describe('when payout requested', () => {
+        let initialContractBalance: BN;
+        let initialPassengerBalance: BN;
+        const expectedPayout = new BN(web3.utils.toWei("1.5", "ether"));
+
+        before(async () => {
+            initialContractBalance = new BN(await web3.eth.getBalance(contract.address));
+            initialPassengerBalance = new BN(await web3.eth.getBalance(passenger1));
+
+            await contract.payoutAll({
+                from: passenger1
+            });
+        });
+
+        it('should transfer credit amount to passenger', async () => {
+            const finalPassengerBalance = new BN(await web3.eth.getBalance(passenger1));
+
+            const passengerBalanceChange = finalPassengerBalance.sub(initialPassengerBalance);
+
+            const tolerance = new BN(web3.utils.toWei('0.001', 'ether'));
+            expect(passengerBalanceChange).to.be.a.bignumber.that.is.closeTo(expectedPayout, tolerance);
+        });
+
+        it('should transfer credit amount from contract', async () => {
+            const finalContractBalance = new BN(await web3.eth.getBalance(contract.address));
+
+            const contractBalanceChange = initialContractBalance.sub(finalContractBalance);
+
+            expect(contractBalanceChange).to.be.a.bignumber.that.is.eq(expectedPayout);
+        });
+
+        it('should update insurance status', async () => {
+            const insurance = parseInsurances(await contract.getMyInsurances({ from: passenger1 }))[0];
+
+            expect(insurance.status).to.be.eq(InsuranceStatus.REPAID);
         });
     });
 

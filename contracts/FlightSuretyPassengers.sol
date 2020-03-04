@@ -78,4 +78,19 @@ contract FlightSuretyPassengers {
             insurance.lastModifiedDate = now;
         }
     }
+
+    function payoutAll() external {
+        uint256 payoutTotal = 0;
+
+        for (uint256 i = 0; i < passengerInsurances[msg.sender].length; i++) {
+            Insurance storage insurance = insurances[passengerInsurances[msg.sender][i]];
+            if (insurance.status == InsuranceStatus.FOR_PAYOUT) {
+                payoutTotal = payoutTotal.add(insurance.creditAmount);
+                insurance.status = InsuranceStatus.REPAID;
+                insurance.lastModifiedDate = now;
+            }
+        }
+
+        msg.sender.transfer(payoutTotal);
+    }
 }
