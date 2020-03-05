@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
-import { Menu, MenuItemProps } from 'semantic-ui-react';
+import { Container, Header as SHeader, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
+
+import Home from './pages/Home';
 
 function App() {
     return (
@@ -11,17 +13,19 @@ function App() {
 
                 {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
-                <Switch>
-                    <Route path="/about">
-                        <About/>
-                    </Route>
-                    <Route path="/users">
-                        <Users/>
-                    </Route>
-                    <Route path="/">
-                        <Home/>
-                    </Route>
-                </Switch>
+                <Container>
+                    <Switch>
+                        <Route path="/about">
+                            <About/>
+                        </Route>
+                        <Route path="/users">
+                            <Users/>
+                        </Route>
+                        <Route path="/">
+                            <Home/>
+                        </Route>
+                    </Switch>
+                </Container>
             </div>
         </Router>
     );
@@ -41,32 +45,27 @@ function Header() {
         <Menu.Item
             name='home'
             active={activeItem === 'home'}
-            onClick={handleItemClick}
-        >
-            Home
+            onClick={handleItemClick}>
+            <Icon name={'bars'}/>
         </Menu.Item>
 
         <Menu.Item
             name='about'
             active={activeItem === 'about'}
-            onClick={handleItemClick}
-        >
+            onClick={handleItemClick}>
             About
         </Menu.Item>
 
         <Menu.Item
             name='users'
             active={activeItem === 'users'}
-            onClick={handleItemClick}
-        >
+            onClick={handleItemClick}>
             Users
         </Menu.Item>
     </Menu>;
 }
 
-function Home() {
-    return <h2>Home</h2>;
-}
+
 
 function About() {
     return <h2>About</h2>;
