@@ -5,12 +5,12 @@ import "./FlightSuretyInterfaces.sol";
 import "./FlightSuretyPassengers.sol";
 
 
-contract FlightSuretyApp is FlightSuretyAirlines, FlightSuretyPassengers {
+contract FlightSuretyApp is FlightSuretyPassengers {
     FlightSuretyOraclesDataContract flightSuretyOraclesData;
 
     constructor(bytes32 name, address account, address dataContractAddress)
         public
-        FlightSuretyAirlines(name, account, dataContractAddress)
+        FlightSuretyPassengers(name, account, dataContractAddress)
     {
         flightSuretyOraclesData = FlightSuretyOraclesDataContract(dataContractAddress);
     }

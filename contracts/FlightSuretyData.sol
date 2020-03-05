@@ -58,6 +58,7 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
 
     function voteToAcceptRequest(address requester) external {
         AirlineJoinRequest storage request = requests[requester];
+        // FIXME: should it be msg.sender?
         request.votes[msg.sender] = VoteStatus.ACCEPT;
         request.totalAccepted += 1;
     }
@@ -277,11 +278,8 @@ contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
 
     Insurance[] private insurances;
 
-    mapping(address => uint256[]) passengerInsurances;
-    mapping(bytes32 => uint256[]) flightInsurances;
-
-    uint256 private constant MAX_INSURANCE_FEE = 1 ether;
-    uint256 private constant DELAYED_FLIGHT_PRC_MULTIPLIER = 150;
+    mapping(address => uint256[]) private passengerInsurances;
+    mapping(bytes32 => uint256[]) private flightInsurances;
 
     function addInsurance(bytes32 flightKey, address insured, uint256 paidAmount) external {
         Insurance memory insurance = Insurance({
@@ -291,28 +289,28 @@ contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
             creditAmount: 0,
             status: InsuranceStatus.PAID,
             lastModifiedDate: now
-            });
+        });
         insurances.push(insurance);
-        passengerInsurances[msg.sender].push(insurances.length - 1);
+        passengerInsurances[insured].push(insurances.length - 1);
         flightInsurances[flightKey].push(insurances.length - 1);
     }
 
     function getAllInsurances(address insured)
-    external
-    view
-    returns (bytes32[] memory flight, uint256[] memory paidAmount, uint[] memory status, uint256[] memory lastModifiedDate)
+        external
+        view
+        returns (bytes32[] memory flight, uint256[] memory paidAmount, uint256[] memory status, uint256[] memory lastModifiedDate)
     {
         uint256 numOfInsurances = passengerInsurances[insured].length;
         bytes32[] memory flights = new bytes32[](numOfInsurances);
         uint256[] memory paidAmounts = new uint256[](numOfInsurances);
-        uint[] memory statuses = new uint[](numOfInsurances);
+        uint256[] memory statuses = new uint256[](numOfInsurances);
         uint256[] memory lastModifiedDates = new uint256[](numOfInsurances);
 
         for (uint256 i = 0; i < numOfInsurances; i++) {
             Insurance storage insurance = insurances[passengerInsurances[insured][i]];
             flights[i] = insurance.flight;
             paidAmounts[i] = insurance.paidAmount;
-            statuses[i] = uint(insurance.status);
+            statuses[i] = uint256(insurance.status);
             lastModifiedDates[i] = insurance.lastModifiedDate;
         }
 
@@ -377,7 +375,7 @@ contract AuthorizedCallerRole {
 }
 
 
-contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyAirlinesData, FlightSuretyOraclesData {
+contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyAirlinesData, FlightSuretyOraclesData, FlightSuretyPassengersData {
     using SafeMath for uint256;
 
     constructor() public {}

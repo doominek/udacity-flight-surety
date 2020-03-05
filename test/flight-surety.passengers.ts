@@ -142,7 +142,7 @@ contract('FlightSuretyApp - Passengers', async (accounts) => {
 
             const passengerBalanceChange = finalPassengerBalance.sub(initialPassengerBalance);
 
-            const tolerance = new BN(web3.utils.toWei('0.001', 'ether'));
+            const tolerance = new BN(web3.utils.toWei('0.002', 'ether'));
             expect(passengerBalanceChange).to.be.a.bignumber.that.is.closeTo(expectedPayout, tolerance);
         });
 
