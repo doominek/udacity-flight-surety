@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
 import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
-
+import { useDispatch } from 'react-redux';
+import { addTodo } from './store/actions';
 import Home from './pages/Home';
 
 function App() {
+    const dispatch = useDispatch();
+    dispatch(addTodo("Third item... This time from component"));
+
     return (
         <Router>
             <div>
