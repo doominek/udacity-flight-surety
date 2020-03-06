@@ -1,25 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'semantic-ui-css/semantic.min.css'
-import './index.css';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
-
-import { applyMiddleware, createStore } from 'redux';
-import createSagaMiddleware from 'redux-saga';
 import { Provider } from 'react-redux';
-import todoApp from './store/reducers';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import rootSaga from './store/sagas';
 
-const sagaMiddleware = createSagaMiddleware();
+import App from './App';
+import './index.css';
+import createStore from './store';
 
-const store = createStore(
-    todoApp,
-    composeWithDevTools(applyMiddleware(sagaMiddleware))
-);
-
-sagaMiddleware.run(rootSaga);
+const store = createStore();
 
 ReactDOM.render(
     <Provider store={store}>
