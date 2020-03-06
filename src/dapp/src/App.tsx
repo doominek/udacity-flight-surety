@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
-import { Container, Header as SHeader, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
+import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 
 import Home from './pages/Home';
 
@@ -11,8 +11,6 @@ function App() {
             <div>
                 <Header/>
 
-                {/* A <Switch> looks through its children <Route>s and
-            renders the first one that matches the current URL. */}
                 <Container>
                     <Switch>
                         <Route path="/about">
@@ -64,7 +62,6 @@ function Header() {
         </Menu.Item>
     </Menu>;
 }
-
 
 
 function About() {
