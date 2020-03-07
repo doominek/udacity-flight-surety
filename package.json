@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "generate": "truffle compile && typechain --target truffle './build/contracts/*.json' --outDir './generated/truffle/contracts' && typechain --target web3-v1 './build/contracts/*.json' --outDir './generated/web3/contracts'",
-    "ganache": "ganache-cli --accounts 40 --defaultBalanceEther 200 --deterministic --mnemonic \"juice notice lava cargo rookie harbor payment foam grunt girl lottery nose cherry pluck hello\"",
+    "ganache": "ganache-cli --accounts 40 --defaultBalanceEther 200 --deterministic --mnemonic \"above sadness level believe palm various soda clutch quiz early conduct connect\"",
     "prettier:sol": "prettier --write **/*.sol"
   },
   "author": "",
