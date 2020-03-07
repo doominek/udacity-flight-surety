@@ -5,12 +5,14 @@ import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 import { useDispatch } from 'react-redux';
 import Home from './pages/Home';
 import { addTodo, toggleTodo } from './store/todoSlice';
+import { initialize } from './store/blockchainSlice';
 
 function App() {
     const dispatch = useDispatch();
     dispatch(addTodo('Fist Todo'));
     dispatch(addTodo('Second Todo'));
     dispatch(toggleTodo('2'));
+    dispatch(initialize());
 
     return (
         <Router>
