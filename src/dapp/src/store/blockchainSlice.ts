@@ -9,6 +9,7 @@ export interface BlockchainState {
     initialized: boolean;
     account?: string;
     role?: AccountRole;
+    error?: string;
 }
 
 const initialState: BlockchainState = {
@@ -19,22 +20,32 @@ const blockchainSlice = createSlice({
                                         name: 'blockchain',
                                         initialState,
                                         reducers: {
-                                            initialize(state, action: PayloadAction<Partial<BlockchainState>>) {
+                                            initializeSuccess(state, action: PayloadAction<Partial<BlockchainState>>) {
                                                 state.account = action.payload.account;
                                                 state.role = action.payload.role;
                                                 state.initialized = true;
+                                            },
+                                            initializeFailure(state, action: PayloadAction<string>) {
+                                                state.error = action.payload;
+                                                state.initialized = false;
                                             }
                                         }
                                     });
 
 export const initialize = (): AppThunk => async (dispatch: AppDispatch) => {
-    await connect();
-    const isAirline = await flightSuretyService.isAirline();
+    try {
+        await connect();
+        const isAirline = await flightSuretyService.isAirline();
 
-    dispatch(blockchainSlice.actions.initialize({
-                                                    account: flightSuretyService.defaultAccount,
-                                                    role: isAirline ? 'airline' : 'passenger'
-                                                }));
+        dispatch(blockchainSlice.actions.initializeSuccess({
+                                                               account: flightSuretyService.defaultAccount,
+                                                               role: isAirline ? 'airline' : 'passenger'
+                                                           }));
+    } catch (e) {
+        console.error(e);
+        dispatch(blockchainSlice.actions.initializeFailure(e.message));
+
+    }
 };
 
 export default blockchainSlice.reducer;

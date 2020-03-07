@@ -27,19 +27,22 @@ class FlightSuretyService {
 class FlightSuretyServiceFactory {
 
     static async create() {
-        const web3 = this.setupWeb3();
+        const web3 = await this.setupWeb3();
         const contract = await this.getFlightSuretyContract(web3);
         const accounts = await web3.eth.getAccounts();
         return new FlightSuretyService(web3, accounts, contract);
     }
 
-    private static setupWeb3(): Web3 {
+    private static async setupWeb3(): Promise<Web3> {
         let web3: Web3;
 
         if (window.ethereum) {
             web3 = new Web3(window.ethereum);
+            await window.ethereum.enable();
         } else {
-            web3 = new Web3(new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545'));
+            const provider = new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545');
+            web3 = new Web3(provider);
+            console.warn("No web3 instance available. Falling back to local environment");
         }
 
         return web3;
