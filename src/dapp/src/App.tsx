@@ -3,12 +3,14 @@ import './App.css';
 import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
 import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 import { useDispatch } from 'react-redux';
-import { addTodo } from './store/actions';
 import Home from './pages/Home';
+import { addTodo, toggleTodo } from './store/todoSlice';
 
 function App() {
     const dispatch = useDispatch();
-    dispatch(addTodo("Third item... This time from component"));
+    dispatch(addTodo({ completed: false, id: '1', text: 'Fist Todo' }));
+    dispatch(addTodo({ completed: false, id: '2', text: 'Second Todo' }));
+    dispatch(toggleTodo('2'));
 
     return (
         <Router>
