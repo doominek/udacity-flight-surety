@@ -4,15 +4,11 @@ import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router
 import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
 import Home from './pages/Home';
-import { addTodo, toggleTodo } from './store/todoSlice';
 import { initialize } from './store/blockchainSlice';
 import { RootState } from './store/reducers';
 
 function App() {
     const dispatch = useDispatch();
-    dispatch(addTodo('Fist Todo'));
-    dispatch(addTodo('Second Todo'));
-    dispatch(toggleTodo('2'));
     dispatch(initialize());
 
     return (

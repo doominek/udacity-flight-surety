@@ -48,4 +48,14 @@ export const initialize = (): AppThunk => async (dispatch: AppDispatch) => {
     }
 };
 
+export const setupMetamaskEventsListener = (dispatch: AppDispatch) => {
+    if (!window.ethereum) {
+        return;
+    }
+
+    window.ethereum.on('accountsChanged', () => {
+        dispatch(initialize());
+    });
+};
+
 export default blockchainSlice.reducer;
