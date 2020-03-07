@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { Todo } from '../todos/types';
+import { AppDispatch, AppThunk } from './config';
 
-const initialState : Todo[] = [];
+const initialState: Todo[] = [];
 
 const todoSlice = createSlice({
                                   name: 'todos',
@@ -21,5 +22,16 @@ const todoSlice = createSlice({
                                   }
                               });
 
-export const { addTodo, toggleTodo } = todoSlice.actions;
+export const { toggleTodo } = todoSlice.actions;
+
+export const addTodo = (text: string): AppThunk => async (dispatch: AppDispatch) => {
+    const newTodo: Todo = {
+        id: Math.random().toString(36).substr(2, 9),
+        completed: false,
+        text: text,
+    };
+
+    dispatch(todoSlice.actions.addTodo(newTodo))
+};
+
 export default todoSlice.reducer;

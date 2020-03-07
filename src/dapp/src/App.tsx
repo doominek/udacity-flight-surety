@@ -8,8 +8,8 @@ import { addTodo, toggleTodo } from './store/todoSlice';
 
 function App() {
     const dispatch = useDispatch();
-    dispatch(addTodo({ completed: false, id: '1', text: 'Fist Todo' }));
-    dispatch(addTodo({ completed: false, id: '2', text: 'Second Todo' }));
+    dispatch(addTodo('Fist Todo'));
+    dispatch(addTodo('Second Todo'));
     dispatch(toggleTodo('2'));
 
     return (
