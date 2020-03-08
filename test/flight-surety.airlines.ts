@@ -43,8 +43,6 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
         thirdCandidateAirline
     ] = accounts;
 
-    const fundingFee = web3.utils.toWei('1', 'ether');
-
     before(async () => {
         instance = await FlightSuretyApp.deployed();
     });
@@ -62,6 +60,7 @@ contract('FlightSuretyApp - Airlines', async (accounts) => {
         });
 
         it('should accept submitting funding fee', async () => {
+            const fundingFee = await instance.AIRLINE_FUNDING_FEE();
             await instance.submitFundingFee({ from: firstAirline, value: fundingFee });
 
             const airline = parseAirline(await instance.getAirline(firstAirline));
