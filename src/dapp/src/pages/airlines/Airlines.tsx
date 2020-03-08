@@ -5,19 +5,32 @@ import { Button, Checkbox, Table } from 'semantic-ui-react';
 import { RootState } from '../../store/reducers';
 import { formatAccount } from '../../common/utils';
 import moment from 'moment';
+import { Airline } from '../../types/airlines';
 
 export const Airlines: React.FC = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchAirlines());
-    }, [dispatch]);
+    }, [ dispatch ]);
 
-    const { loading, airlines } = useSelector((state: RootState) => ({
+    const { action, loading, airlines, account } = useSelector((state: RootState) => ({
         loading: state.ui.loading,
-        airlines: state.airlines.airlines
+        action: state.ui.action,
+        airlines: state.airlines.airlines,
+        account: state.blockchain.account
     }));
 
-    if (loading) {
+    const renderPayFeeButton = (airline: Airline) => {
+        if (airline.account !== account || airline.paid) {
+            return null;
+        }
+
+        return <Button loading={action === 'Paying funding fee' && loading}
+                       primary
+                       onClick={() => dispatch(payFundingFee())}>Pay</Button>;
+    };
+
+    if (action === 'Fetching Airlines list' && loading) {
         return <div>Loading data...</div>;
     }
 
@@ -39,7 +52,9 @@ export const Airlines: React.FC = () => {
                     <Table.Cell>{formatAccount(airline.account)}</Table.Cell>
                     <Table.Cell>{moment.unix(airline.date).format('LLL')}</Table.Cell>
                     <Table.Cell><Checkbox checked={airline.paid}/></Table.Cell>
-                    <Table.Cell><Button loading={loading} primary onClick={() => dispatch(payFundingFee())}>Pay</Button></Table.Cell>
+                    <Table.Cell>
+                        {renderPayFeeButton(airline)}
+                    </Table.Cell>
                 </Table.Row>
             ))}
         </Table.Body>

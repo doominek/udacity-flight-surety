@@ -26,7 +26,7 @@ const airlinesSlice = createSlice({
 
 export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
-        dispatch(asyncProcessStarted('Loading Airlines list'));
+        dispatch(asyncProcessStarted('Fetching Airlines list'));
         const airlines = await flightSuretyService.getAirlines();
 
         dispatch(airlinesSlice.actions.airlinesLoaded(airlines));
