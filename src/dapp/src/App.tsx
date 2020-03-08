@@ -37,10 +37,9 @@ function App() {
 
         <Container>
             <Switch>
-                {
-                    airlineRoutes.map((route, idx) =>
-                                          <Route key={idx} path={route.path}>{route.component}</Route>)
-                }
+                <Route path='/airlines'>
+                    <Airlines/>
+                </Route>
                 <Route path="/">
                     <Home/>
                 </Route>

@@ -3,6 +3,7 @@ import { AbiItem } from 'web3-utils';
 import * as _ from 'lodash';
 import FlightSuretyApp from '../contracts/FlightSuretyApp.json';
 import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
+import { Airline } from '../types/airlines';
 
 
 declare global {
@@ -10,6 +11,7 @@ declare global {
         ethereum: any;
     }
 }
+
 
 class FlightSuretyService {
     constructor(private web3: Web3, private accounts: string[], private flightSuretyApp: FlightSuretyAppContract) {
@@ -21,6 +23,28 @@ class FlightSuretyService {
 
     async isAirline() {
         return this.flightSuretyApp.methods.isAirline(this.defaultAccount).call();
+    }
+
+    async getAirlines(): Promise<Airline[]> {
+        return this.flightSuretyApp.methods.getAllAirlines().call().then(result => this.parseAirlines(result));
+    }
+
+    private parseAirline(data: any[]): Airline {
+        const [ name, account, date, paid ] = data;
+        return {
+            name: this.web3.utils.hexToUtf8(name),
+            account,
+            date: parseInt(date),
+            paid
+        }
+    }
+
+    private parseAirlines(airlinesData: { _names: string[]; _accounts: string[]; _dates: string[]; _paid: boolean[]; '0': string[]; '1': string[]; '2': string[]; '3': boolean[] }) {
+        return _.range(airlinesData[0].length)
+                .map(idx => this.parseAirline([ airlinesData[0][idx],
+                                                airlinesData[1][idx],
+                                                airlinesData[2][idx],
+                                                airlinesData[3][idx] ]));
     }
 }
 
@@ -42,7 +66,7 @@ class FlightSuretyServiceFactory {
         } else {
             const provider = new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545');
             web3 = new Web3(provider);
-            console.warn("No web3 instance available. Falling back to local environment");
+            console.warn('No web3 instance available. Falling back to local environment');
         }
 
         return web3;
