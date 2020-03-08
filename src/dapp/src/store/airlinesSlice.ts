@@ -36,6 +36,18 @@ export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
         console.error(e);
         dispatch(asyncProcessFailed(e));
     }
-};
+ };
+
+export const payFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncProcessStarted('Paying funding fee'));
+        await flightSuretyService.payFundingFee();
+
+        dispatch(asyncProcessSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncProcessFailed(e));
+    }
+ };
 
 export default airlinesSlice.reducer;

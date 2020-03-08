@@ -29,6 +29,11 @@ class FlightSuretyService {
         return this.flightSuretyApp.methods.getAllAirlines().call().then(result => this.parseAirlines(result));
     }
 
+    async payFundingFee() {
+        const fundingFee = await this.flightSuretyApp.methods.AIRLINE_FUNDING_FEE().call();
+        await this.flightSuretyApp.methods.submitFundingFee().send({ from: this.defaultAccount, value: fundingFee });
+    }
+
     private parseAirline(data: any[]): Airline {
         const [ name, account, date, paid ] = data;
         return {

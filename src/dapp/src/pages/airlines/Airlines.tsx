@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAirlines } from '../../store/airlinesSlice';
-import { Checkbox, Table } from 'semantic-ui-react';
+import { fetchAirlines, payFundingFee } from '../../store/airlinesSlice';
+import { Button, Checkbox, Table } from 'semantic-ui-react';
 import { RootState } from '../../store/reducers';
 import { formatAccount } from '../../common/utils';
 import moment from 'moment';
@@ -10,7 +10,7 @@ export const Airlines: React.FC = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchAirlines());
-    }, []);
+    }, [dispatch]);
 
     const { loading, airlines } = useSelector((state: RootState) => ({
         loading: state.ui.loading,
@@ -39,7 +39,7 @@ export const Airlines: React.FC = () => {
                     <Table.Cell>{formatAccount(airline.account)}</Table.Cell>
                     <Table.Cell>{moment.unix(airline.date).format('LLL')}</Table.Cell>
                     <Table.Cell><Checkbox checked={airline.paid}/></Table.Cell>
-                    <Table.Cell></Table.Cell>
+                    <Table.Cell><Button loading={loading} primary onClick={() => dispatch(payFundingFee())}>Pay</Button></Table.Cell>
                 </Table.Row>
             ))}
         </Table.Body>
