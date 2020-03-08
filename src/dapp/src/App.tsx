@@ -7,31 +7,43 @@ import Home from './pages/Home';
 import { initialize } from './store/blockchainSlice';
 import { RootState } from './store/reducers';
 
+const airlineRoutes = [
+    {
+        name: 'Airlines',
+        path: '/airlines',
+        component: About
+    },
+    {
+        name: 'Requests',
+        path: '/requests',
+        component: About
+    },
+    {
+        name: 'Flights',
+        path: '/flights',
+        component: About
+    }
+];
+
 function App() {
     const dispatch = useDispatch();
     dispatch(initialize());
 
-    return (
-        <Router>
-            <div>
-                <Header/>
+    return <Router>
+        <Header/>
 
-                <Container>
-                    <Switch>
-                        <Route path="/about">
-                            <About/>
-                        </Route>
-                        <Route path="/users">
-                            <Users/>
-                        </Route>
-                        <Route path="/">
-                            <Home/>
-                        </Route>
-                    </Switch>
-                </Container>
-            </div>
-        </Router>
-    );
+        <Container>
+            <Switch>
+                {
+                    airlineRoutes.map((route, idx) =>
+                                          <Route key={idx} path={route.path}>{route.component}</Route>)
+                }
+                <Route path="/">
+                    <Home/>
+                </Route>
+            </Switch>
+        </Container>
+    </Router>;
 }
 
 function Header() {
@@ -40,31 +52,33 @@ function Header() {
     const handleItemClick = (e: any, { name }: MenuItemProps) => {
         if (name) {
             setActiveItem(name);
-            history.push(`/${name}`)
+            history.push(`${name}`)
         }
     };
 
     return <Menu>
         <Menu.Item
-            name='home'
-            active={activeItem === 'home'}
+            name='/home'
+            active={activeItem === '/home'}
             onClick={handleItemClick}>
             <Icon name={'bars'}/>
         </Menu.Item>
 
-        <Menu.Item
-            name='about'
-            active={activeItem === 'about'}
-            onClick={handleItemClick}>
-            About
+        <Menu.Item>
+            <h3>Flight Surety</h3>
         </Menu.Item>
 
-        <Menu.Item
-            name='users'
-            active={activeItem === 'users'}
-            onClick={handleItemClick}>
-            Users
-        </Menu.Item>
+        {
+            airlineRoutes.map((route, idx) => (
+                <Menu.Item
+                    key={idx}
+                    name={route.path}
+                    active={activeItem === route.path}
+                    onClick={handleItemClick}>
+                    {route.name}
+                </Menu.Item>
+            ))
+        }
 
         <AccountInfo/>
     </Menu>;
@@ -86,9 +100,9 @@ function AccountInfo() {
 
     const renderRoleIcon = (role?: string) => {
         if (role === 'airline') {
-            return <Icon name='plane' />
+            return <Icon name='plane'/>
         } else if (role === 'passenger') {
-            return <Icon name='user' />
+            return <Icon name='user'/>
         }
 
         return role;
@@ -97,7 +111,7 @@ function AccountInfo() {
 
     return <Menu.Menu position='right'>
         <Menu.Item>
-            { renderRoleIcon(info.role) } { formatAccount(info.account) }
+            {renderRoleIcon(info.role)} {formatAccount(info.account)}
         </Menu.Item>
     </Menu.Menu>
 }
