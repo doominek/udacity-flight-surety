@@ -5,6 +5,7 @@ import { RootState } from '../../store/reducers';
 import { useForm } from 'react-hook-form';
 import Web3Utils from 'web3-utils';
 import { registerAirline } from '../../store/airlinesSlice';
+import { useHistory } from 'react-router-dom';
 
 type FormData = {
     name: string;
@@ -14,6 +15,7 @@ type FormData = {
 
 export const AddAirline: React.FC = () => {
     const dispatch = useDispatch();
+    const history = useHistory();
 
     const { action, loading } = useSelector((state: RootState) => ({
         loading: state.ui.loading,
@@ -23,7 +25,7 @@ export const AddAirline: React.FC = () => {
     const { register, handleSubmit, errors } = useForm<FormData>();
 
     const addAirline = handleSubmit((data: FormData) => {
-        dispatch(registerAirline(data.name, data.account));
+        dispatch(registerAirline(data.name, data.account, history));
     });
 
     return <Fragment>

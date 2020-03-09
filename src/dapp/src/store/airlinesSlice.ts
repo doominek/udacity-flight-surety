@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import * as H from 'history';
 
 import { AppDispatch, AppThunk } from './config';
 import { flightSuretyService } from '../blockchain/service';
@@ -50,12 +51,15 @@ export const payFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
     }
 };
 
-export const registerAirline = (name: string, account: string): AppThunk => async (dispatch: AppDispatch) => {
+export const registerAirline = (name: string, account: string, history: H.History): AppThunk => async (dispatch: AppDispatch) => {
     try {
         dispatch(asyncProcessStarted('Register new airline'));
         await flightSuretyService.registerAirline(name, account);
 
         dispatch(asyncProcessSuccess());
+        setTimeout(() => {
+            history.push('/airlines');
+        }, 2000);
     } catch (e) {
         console.error(e);
         dispatch(asyncProcessFailed(e));
