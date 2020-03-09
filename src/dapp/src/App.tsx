@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
 import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
@@ -9,6 +9,7 @@ import { Airlines } from './pages/airlines/Airlines';
 import { Requests } from './pages/airlines/Requests';
 import { Flights } from './pages/airlines/Flights';
 import { AccountInfo } from './components/AccountInfo';
+import { AddAirline } from './pages/airlines/AddAirline';
 
 const airlineRoutes = [
     {
@@ -30,15 +31,20 @@ const airlineRoutes = [
 
 function App() {
     const dispatch = useDispatch();
-    dispatch(initialize());
+    useEffect(() => {
+        dispatch(initialize());
+    }, [ dispatch ]);
 
     return <Router>
         <Header/>
 
         <Container>
             <Switch>
-                <Route path='/airlines'>
+                <Route exact path='/airlines'>
                     <Airlines/>
+                </Route>
+                <Route exact path='/airlines/add'>
+                    <AddAirline/>
                 </Route>
                 <Route path="/">
                     <Home/>

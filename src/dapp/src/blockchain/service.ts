@@ -51,6 +51,11 @@ class FlightSuretyService {
                                                 airlinesData[2][idx],
                                                 airlinesData[3][idx] ]));
     }
+
+    async registerAirline(name: string, account: string) {
+        const nameAsHex = this.web3.utils.utf8ToHex(name);
+        await this.flightSuretyApp.methods.registerAirline(nameAsHex, account).send({ from: this.defaultAccount })
+    }
 }
 
 class FlightSuretyServiceFactory {

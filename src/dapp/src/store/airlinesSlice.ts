@@ -36,7 +36,7 @@ export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
         console.error(e);
         dispatch(asyncProcessFailed(e));
     }
- };
+};
 
 export const payFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
@@ -48,6 +48,19 @@ export const payFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
         console.error(e);
         dispatch(asyncProcessFailed(e));
     }
- };
+};
+
+export const registerAirline = (name: string, account: string): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncProcessStarted('Register new airline'));
+        await flightSuretyService.registerAirline(name, account);
+
+        dispatch(asyncProcessSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncProcessFailed(e));
+    }
+};
+
 
 export default airlinesSlice.reducer;
