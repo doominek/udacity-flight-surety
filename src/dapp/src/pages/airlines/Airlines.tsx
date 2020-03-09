@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button, Checkbox, Icon, Table } from 'semantic-ui-react';
 import { useHistory } from 'react-router-dom';
 
-import { fetchAirlines, payFundingFee } from '../../store/airlinesSlice';
+import { fetchAirlines, submitFundingFee } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
 import { formatAccount } from '../../common/utils';
 import moment from 'moment';
@@ -36,7 +36,7 @@ export const Airlines: React.FC = () => {
 
         return <Button loading={action === 'Paying funding fee' && loading}
                        primary
-                       onClick={() => dispatch(payFundingFee())}>Pay</Button>;
+                       onClick={() => dispatch(submitFundingFee())}>Pay</Button>;
     };
 
     if (action === 'Fetching Airlines list' && loading) {
@@ -50,7 +50,7 @@ export const Airlines: React.FC = () => {
                     <Table.HeaderCell>Name</Table.HeaderCell>
                     <Table.HeaderCell>Account</Table.HeaderCell>
                     <Table.HeaderCell>Joined</Table.HeaderCell>
-                    <Table.HeaderCell>Fee Paid</Table.HeaderCell>
+                    <Table.HeaderCell>Fee Submitted</Table.HeaderCell>
                     <Table.HeaderCell>Actions</Table.HeaderCell>
                 </Table.Row>
             </Table.Header>

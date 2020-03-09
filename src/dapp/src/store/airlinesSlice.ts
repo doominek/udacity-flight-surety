@@ -39,12 +39,13 @@ export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
     }
 };
 
-export const payFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
+export const submitFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
         dispatch(asyncProcessStarted('Paying funding fee'));
-        await flightSuretyService.payFundingFee();
+        await flightSuretyService.submitFundingFee();
 
         dispatch(asyncProcessSuccess());
+        dispatch(fetchAirlines());
     } catch (e) {
         console.error(e);
         dispatch(asyncProcessFailed(e));

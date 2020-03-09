@@ -29,7 +29,7 @@ class FlightSuretyService {
         return this.flightSuretyApp.methods.getAllAirlines().call().then(result => this.parseAirlines(result));
     }
 
-    async payFundingFee() {
+    async submitFundingFee() {
         const fundingFee = await this.flightSuretyApp.methods.AIRLINE_FUNDING_FEE().call();
         await this.flightSuretyApp.methods.submitFundingFee().send({ from: this.defaultAccount, value: fundingFee });
     }
