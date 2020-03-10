@@ -33,10 +33,13 @@ const uiSlice = createSlice({
                                     asyncActionFailed(state, action: PayloadAction<Error>) {
                                         state.action!.error = action.payload.message;
                                         state.action!.state = 'error';
+                                    },
+                                    dismissAction(state) {
+                                        state.action = undefined;
                                     }
                                 }
                             });
 
-export const { asyncActionStarted, asyncActionSuccess, asyncActionFailed } = uiSlice.actions;
+export const { asyncActionStarted, asyncActionSuccess, asyncActionFailed, dismissAction } = uiSlice.actions;
 
 export default uiSlice.reducer;
