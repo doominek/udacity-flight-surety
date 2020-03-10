@@ -4,27 +4,29 @@ export interface UiState {
     action?: AsyncAction;
 }
 
-const initialState: UiState = {
-};
+const initialState: UiState = {};
 
-export type AsyncActionState =  'pending' | 'error' | 'success';
+export type AsyncActionState = 'pending' | 'error' | 'success';
 
 export interface AsyncAction {
-  state: AsyncActionState;
-  name: string;
-  error?: string;
-  showNotification: boolean;
+    state: AsyncActionState;
+    name: string;
+    context: any;
+    error?: string;
+    showNotification: boolean;
 }
 
 const uiSlice = createSlice({
                                 name: 'ui',
                                 initialState,
                                 reducers: {
-                                    asyncActionStarted(state, action: PayloadAction<{ name: string, showNotification: boolean }>) {
+                                    asyncActionStarted(state, action: PayloadAction<{ name: string, showNotification?: boolean, context?: any }>) {
+                                        const { name, showNotification, context } = action.payload;
                                         state.action = {
-                                          state: 'pending',
-                                          name: action.payload.name,
-                                          showNotification: action.payload.showNotification
+                                            state: 'pending',
+                                            name,
+                                            showNotification: showNotification || false,
+                                            context
                                         }
                                     },
                                     asyncActionSuccess(state) {

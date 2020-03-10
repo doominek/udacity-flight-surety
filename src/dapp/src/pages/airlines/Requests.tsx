@@ -1,10 +1,11 @@
 import React, { Fragment, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRequests, submitFundingFee } from '../../store/airlinesSlice';
+import { fetchRequests, voteToAccept, voteToReject } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
-import { RequestStatus } from '../../types/airlines';
+import { Request, RequestStatus } from '../../types/airlines';
 import { Button, Table } from 'semantic-ui-react';
 import { formatAccount } from '../../common/utils';
+import { AsyncAction } from '../../store/uiSlice';
 
 export const Requests = () => {
     const dispatch = useDispatch();
@@ -19,17 +20,28 @@ export const Requests = () => {
         pendingRequests: state.airlines.requests.filter(r => r.status === RequestStatus.PENDING)
     }));
 
-    const renderVotingButtons = () => {
+    const isAcceptingInProgress = (action: AsyncAction, request: Request) =>
+        action.name === 'Accepting Request'
+        && action.context.requester === request.account
+        && action.state === 'pending';
+
+    const isRejectingInProgress = (action: AsyncAction, request: Request) =>
+        action.name === 'Rejecting Request'
+        && action.context.requester === request.account
+        && action.state === 'pending';
+
+
+    const renderVotingButtons = (request: Request) => {
         return (
             <Fragment>
-                <Button loading={action?.name === 'Voting' && action?.state === 'pending'}
+                <Button loading={action && isAcceptingInProgress(action, request)}
                         size='mini'
                         color='green'
-                        onClick={() => dispatch(submitFundingFee())}>Accept</Button>
-                <Button loading={action?.name === 'Voting' && action?.state === 'pending'}
+                        onClick={() => dispatch(voteToAccept(request))}>Accept</Button>
+                <Button loading={action && isRejectingInProgress(action, request)}
                         size='mini'
                         color='red'
-                        onClick={() => dispatch(submitFundingFee())}>Reject</Button>
+                        onClick={() => dispatch(voteToReject(request))}>Reject</Button>
             </Fragment>
         );
     };
@@ -57,7 +69,7 @@ export const Requests = () => {
                         <Table.Cell>{request.name}</Table.Cell>
                         <Table.Cell>{formatAccount(request.account)}</Table.Cell>
                         <Table.Cell>{request.votesAccepted} / {request.votesRejected}</Table.Cell>
-                        <Table.Cell>{renderVotingButtons()}</Table.Cell>
+                        <Table.Cell>{renderVotingButtons(request)}</Table.Cell>
                     </Table.Row>
                 ))}
             </Table.Body>

@@ -43,19 +43,6 @@ export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
     }
 };
 
-export const fetchRequests = (): AppThunk => async (dispatch: AppDispatch) => {
-    try {
-        dispatch(asyncActionStarted({ name: 'Fetching Requests list', showNotification: false }));
-        const requests = await flightSuretyService.getRequests();
-
-        dispatch(airlinesSlice.actions.requestsLoaded(requests));
-        dispatch(asyncActionSuccess());
-    } catch (e) {
-        console.error(e);
-        dispatch(asyncActionFailed(e));
-    }
-};
-
 export const submitFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
         dispatch(asyncActionStarted({ name: 'Paying funding fee', showNotification: true }));
@@ -78,6 +65,45 @@ export const registerAirline = (name: string, account: string, history: H.Histor
         setTimeout(() => {
             history.push('/airlines/list');
         }, 2000);
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const fetchRequests = (): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Fetching Requests list', showNotification: false }));
+        const requests = await flightSuretyService.getRequests();
+
+        dispatch(airlinesSlice.actions.requestsLoaded(requests));
+        dispatch(asyncActionSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const voteToAccept = (request: Request): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Accepting Request', showNotification: true, context: { requester: request.account } }));
+        await flightSuretyService.voteToAcceptRequest(request.account);
+
+        dispatch(asyncActionSuccess());
+        dispatch(fetchRequests());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const voteToReject = (request: Request): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Rejecting Request', showNotification: true, context: { requester: request.account } }));
+        await flightSuretyService.voteToRejectRequest(request.account);
+
+        dispatch(asyncActionSuccess());
+        dispatch(fetchRequests());
     } catch (e) {
         console.error(e);
         dispatch(asyncActionFailed(e));

@@ -43,6 +43,14 @@ class FlightSuretyService {
         return this.flightSuretyApp.methods.getAllRequests().call().then(result => this.parseRequests(result));
     }
 
+    async voteToAcceptRequest(requester: string) {
+        await this.flightSuretyApp.methods.voteToAcceptRequest(requester).call({ from: this.defaultAccount });
+    }
+
+    async voteToRejectRequest(requester: string) {
+        await this.flightSuretyApp.methods.voteToRejectRequest(requester).call({ from: this.defaultAccount });
+    }
+
     private parseAirline(data: any[]): Airline {
         const [ name, account, date, paid ] = data;
         return {
