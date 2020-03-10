@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Checkbox, Icon, Table } from 'semantic-ui-react';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
 import { fetchAirlines, submitFundingFee } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
@@ -70,7 +70,10 @@ export const Airlines: React.FC = () => {
 
             <Table.Footer fullWidth>
                 <Table.Row>
-                    <Table.HeaderCell colSpan='5'>
+                    <Table.HeaderCell colSpan='3'>
+                        <p>There are pending requests <Link to='/airlines/requests'>>></Link></p>
+                    </Table.HeaderCell>
+                    <Table.HeaderCell colSpan='2'>
                         <Button
                             floated='right'
                             icon

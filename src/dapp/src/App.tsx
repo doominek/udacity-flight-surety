@@ -1,7 +1,7 @@
-import React, { useEffect, Fragment } from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Container, Dimmer, Header, Icon, Loader, Message } from 'semantic-ui-react';
+import { Container, Dimmer, Header, Loader } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
 import Home from './pages/Home';
 import { initialize } from './store/blockchainSlice';
@@ -9,9 +9,9 @@ import { Airlines } from './pages/airlines/Airlines';
 import { AddAirline } from './pages/airlines/AddAirline';
 import { MainMenu } from './components/MainMenu';
 import { RootState } from './store/reducers';
-import { ConnectionError } from "./pages/ConnectionError";
-import { useToasts } from "react-toast-notifications";
-import { AsyncActionNotifier } from "./components/AsyncActionNotifier";
+import { ConnectionError } from './pages/ConnectionError';
+import { AsyncActionNotifier } from './components/AsyncActionNotifier';
+import { Requests } from './pages/airlines/Requests';
 
 function App() {
     const dispatch = useDispatch();
@@ -20,7 +20,7 @@ function App() {
         dispatch(initialize());
     }, [ dispatch ]);
 
-    const { initialized, error  } = useSelector((state: RootState) => ({
+    const { initialized, error } = useSelector((state: RootState) => ({
         initialized: state.blockchain.initialized,
         error: state.blockchain.error
     }));
@@ -33,12 +33,12 @@ function App() {
     };
 
     if (error) {
-        return <ConnectionError error={error} />;
+        return <ConnectionError error={error}/>;
     }
 
     if (!initialized) {
         return <Dimmer active inverted>
-            <Loader inverted content={ renderConnectionInProgress() } />
+            <Loader inverted content={renderConnectionInProgress()}/>
         </Dimmer>;
     }
 
@@ -47,11 +47,14 @@ function App() {
 
         <Container>
             <Switch>
-                <Route exact path='/airlines'>
+                <Route exact path='/airlines/list'>
                     <Airlines/>
                 </Route>
                 <Route exact path='/airlines/add'>
                     <AddAirline/>
+                </Route>
+                <Route exact path='/airlines/requests'>
+                    <Requests/>
                 </Route>
                 <Route path="/">
                     <Home/>
@@ -59,7 +62,7 @@ function App() {
             </Switch>
         </Container>
 
-        <AsyncActionNotifier />
+        <AsyncActionNotifier/>
     </Router>;
 }
 

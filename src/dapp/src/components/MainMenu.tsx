@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 import { AccountInfo } from './AccountInfo';
-import { Airlines } from '../pages/airlines/Airlines';
-import { Requests } from '../pages/airlines/Requests';
-import { Flights } from '../pages/airlines/Flights';
 
 
 export const MainMenu: React.FC = () => {
@@ -21,18 +18,15 @@ export const MainMenu: React.FC = () => {
     const airlineMainRoutes = [
         {
             name: 'Airlines',
-            path: '/airlines',
-            component: Airlines
+            path: '/airlines/list'
         },
         {
             name: 'Requests',
-            path: '/requests',
-            component: Requests
+            path: '/airlines/requests/'
         },
         {
             name: 'Flights',
-            path: '/flights',
-            component: Flights
+            path: '/airlines/flights'
         }
     ];
 
