@@ -128,4 +128,18 @@ contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
     {
         return flightSuretyAirlinesData.getAllAirlines();
     }
+
+    function getAllRequests()
+        public
+        view
+        returns (
+            bytes32[] memory _name,
+            address[] memory _account,
+            uint8[] memory _votesAccepted,
+            uint8[] memory _votesRejected,
+            uint8[] memory _status
+        )
+    {
+        return flightSuretyAirlinesData.getAllRequests();
+    }
 }
