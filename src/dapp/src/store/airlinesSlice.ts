@@ -3,16 +3,18 @@ import * as H from 'history';
 
 import { AppDispatch, AppThunk } from './config';
 import { flightSuretyService } from '../blockchain/service';
-import { Airline } from '../types/airlines';
+import { Airline, Request } from '../types/airlines';
 
 import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
 
 export interface AirlinesState {
     airlines: Airline[];
+    requests: Request[];
 }
 
 const initialState: AirlinesState = {
-    airlines: []
+    airlines: [],
+    requests: []
 };
 
 const airlinesSlice = createSlice({
@@ -21,6 +23,9 @@ const airlinesSlice = createSlice({
                                       reducers: {
                                           airlinesLoaded(state, action: PayloadAction<Airline[]>) {
                                               state.airlines = action.payload;
+                                          },
+                                          requestsLoaded(state, action: PayloadAction<Request[]>) {
+                                              state.requests = action.payload;
                                           }
                                       }
                                   });
@@ -32,7 +37,19 @@ export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
 
         dispatch(airlinesSlice.actions.airlinesLoaded(airlines));
         dispatch(asyncActionSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
 
+export const fetchRequests = (): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Fetching Requests list', showNotification: false }));
+        const requests = await flightSuretyService.getRequests();
+
+        dispatch(airlinesSlice.actions.requestsLoaded(requests));
+        dispatch(asyncActionSuccess());
     } catch (e) {
         console.error(e);
         dispatch(asyncActionFailed(e));
@@ -59,7 +76,7 @@ export const registerAirline = (name: string, account: string, history: H.Histor
 
         dispatch(asyncActionSuccess());
         setTimeout(() => {
-            history.push('/airlines');
+            history.push('/airlines/list');
         }, 2000);
     } catch (e) {
         console.error(e);

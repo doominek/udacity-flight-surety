@@ -3,11 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button, Checkbox, Icon, Table } from 'semantic-ui-react';
 import { Link, useHistory } from 'react-router-dom';
 
-import { fetchAirlines, submitFundingFee } from '../../store/airlinesSlice';
+import { fetchAirlines, fetchRequests, submitFundingFee } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
 import { formatAccount } from '../../common/utils';
 import moment from 'moment';
-import { Airline } from '../../types/airlines';
+import { Airline, RequestStatus } from '../../types/airlines';
 
 export const Airlines: React.FC = () => {
     const dispatch = useDispatch();
@@ -15,13 +15,15 @@ export const Airlines: React.FC = () => {
 
     useEffect(() => {
         dispatch(fetchAirlines());
+        dispatch(fetchRequests());
     }, [ dispatch ]);
 
 
-    const { action, airlines, account } = useSelector((state: RootState) => ({
+    const { action, airlines, account, pendingRequests } = useSelector((state: RootState) => ({
         action: state.ui.action,
         airlines: state.airlines.airlines,
-        account: state.blockchain.account
+        account: state.blockchain.account,
+        pendingRequests: state.airlines.requests.filter(r => r.status === RequestStatus.PENDING).length
     }));
 
     const navigateToAddAirline = () => {
@@ -71,7 +73,7 @@ export const Airlines: React.FC = () => {
             <Table.Footer fullWidth>
                 <Table.Row>
                     <Table.HeaderCell colSpan='3'>
-                        <p>There are pending requests <Link to='/airlines/requests'>>></Link></p>
+                        { pendingRequests && <p>Pending requests: {pendingRequests} <Link to='/airlines/requests'>>></Link></p> }
                     </Table.HeaderCell>
                     <Table.HeaderCell colSpan='2'>
                         <Button

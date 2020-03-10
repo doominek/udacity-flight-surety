@@ -22,7 +22,7 @@ export const MainMenu: React.FC = () => {
         },
         {
             name: 'Requests',
-            path: '/airlines/requests/'
+            path: '/airlines/requests'
         },
         {
             name: 'Flights',

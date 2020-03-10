@@ -3,7 +3,7 @@ import { AbiItem } from 'web3-utils';
 import * as _ from 'lodash';
 import FlightSuretyApp from '../contracts/FlightSuretyApp.json';
 import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
-import { Airline } from '../types/airlines';
+import { Airline, Request } from '../types/airlines';
 
 
 declare global {
@@ -34,6 +34,15 @@ class FlightSuretyService {
         await this.flightSuretyApp.methods.submitFundingFee().send({ from: this.defaultAccount, value: fundingFee });
     }
 
+    async registerAirline(name: string, account: string) {
+        const nameAsHex = this.web3.utils.utf8ToHex(name);
+        await this.flightSuretyApp.methods.registerAirline(nameAsHex, account).send({ from: this.defaultAccount })
+    }
+
+    async getRequests(): Promise<Request[]> {
+        return this.flightSuretyApp.methods.getAllRequests().call().then(result => this.parseRequests(result));
+    }
+
     private parseAirline(data: any[]): Airline {
         const [ name, account, date, paid ] = data;
         return {
@@ -52,9 +61,19 @@ class FlightSuretyService {
                                                 airlinesData[3][idx] ]));
     }
 
-    async registerAirline(name: string, account: string) {
-        const nameAsHex = this.web3.utils.utf8ToHex(name);
-        await this.flightSuretyApp.methods.registerAirline(nameAsHex, account).send({ from: this.defaultAccount })
+    private parseRequests(requestsData: { _name: string[]; _account: string[]; _votesAccepted: string[]; _votesRejected: string[]; _status: string[] }): Request[] {
+        if (!requestsData) {
+            return [];
+        }
+
+        return _.range(requestsData._name.length)
+                .map(idx => ({
+                    name: this.web3.utils.hexToUtf8(requestsData._name[idx]),
+                    account: requestsData._account[idx],
+                    votesAccepted: parseInt(requestsData._votesAccepted[idx]),
+                    votesRejected: parseInt(requestsData._votesRejected[idx]),
+                    status: parseInt(requestsData._status[idx])
+                }));
     }
 }
 
