@@ -18,8 +18,7 @@ export const Airlines: React.FC = () => {
     }, [ dispatch ]);
 
 
-    const { action, loading, airlines, account } = useSelector((state: RootState) => ({
-        loading: state.ui.loading,
+    const { action, airlines, account } = useSelector((state: RootState) => ({
         action: state.ui.action,
         airlines: state.airlines.airlines,
         account: state.blockchain.account
@@ -34,12 +33,12 @@ export const Airlines: React.FC = () => {
             return null;
         }
 
-        return <Button loading={action === 'Paying funding fee' && loading}
+        return <Button loading={action?.name === 'Paying funding fee' && action?.state === 'pending'}
                        primary
                        onClick={() => dispatch(submitFundingFee())}>Pay</Button>;
     };
 
-    if (action === 'Fetching Airlines list' && loading) {
+    if (action?.name === 'Fetching Airlines list' && action?.state === 'pending') {
         return <div>Loading data...</div>;
     }
 

@@ -17,8 +17,7 @@ export const AddAirline: React.FC = () => {
     const dispatch = useDispatch();
     const history = useHistory();
 
-    const { action, loading } = useSelector((state: RootState) => ({
-        loading: state.ui.loading,
+    const { action } = useSelector((state: RootState) => ({
         action: state.ui.action
     }));
 
@@ -50,7 +49,7 @@ export const AddAirline: React.FC = () => {
                        placeholder='0x...'/>
                 {errors.account && <div className="ui pointing above prompt label" role="alert">{errors.account.message}</div>}
             </Form.Field>
-            <Button type='submit' primary loading={action === 'Register new airline' && loading} onClick={addAirline}>Submit</Button>
+            <Button type='submit' primary loading={action?.name === 'Register new airline' && action?.state === 'pending'} onClick={addAirline}>Submit</Button>
         </Form>
     </Fragment>;
 };

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Fragment } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Container, Dimmer, Header, Icon, Loader, Message } from 'semantic-ui-react';
@@ -10,7 +10,7 @@ import { AddAirline } from './pages/airlines/AddAirline';
 import { MainMenu } from './components/MainMenu';
 import { RootState } from './store/reducers';
 import { ConnectionError } from "./pages/ConnectionError";
-
+import { useToasts } from "react-toast-notifications";
 
 function App() {
     const dispatch = useDispatch();
@@ -57,8 +57,36 @@ function App() {
                 </Route>
             </Switch>
         </Container>
+        <AsyncProcessNotifier/>
     </Router>;
 }
+
+const AsyncProcessNotifier = () => {
+    const { addToast } = useToasts();
+    const { action } = useSelector((state: RootState) => ({
+        action: state.ui.action
+    }));
+
+    useEffect(() => {
+        console.log(action);
+        if (!action) {
+            return;
+        }
+
+        switch (action.state) {
+            case 'error':
+                addToast(`${action.name} failed. Details: ${action.error}`, { appearance: 'error' });
+                break;
+            case 'success':
+                if (action.showNotification) {
+                    addToast(`${action.name} successful.`, { appearance: 'success' });
+                }
+                break;
+        }
+    }, [action]);
+
+    return <Fragment></Fragment>;
+};
 
 
 export default App;

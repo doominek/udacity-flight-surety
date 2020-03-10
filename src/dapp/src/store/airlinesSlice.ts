@@ -5,7 +5,7 @@ import { AppDispatch, AppThunk } from './config';
 import { flightSuretyService } from '../blockchain/service';
 import { Airline } from '../types/airlines';
 
-import { asyncProcessFailed, asyncProcessStarted, asyncProcessSuccess } from './uiSlice';
+import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
 
 export interface AirlinesState {
     airlines: Airline[];
@@ -27,43 +27,43 @@ const airlinesSlice = createSlice({
 
 export const fetchAirlines = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
-        dispatch(asyncProcessStarted('Fetching Airlines list'));
+        dispatch(asyncActionStarted({ name: 'Fetching Airlines list', showNotification: false }));
         const airlines = await flightSuretyService.getAirlines();
 
         dispatch(airlinesSlice.actions.airlinesLoaded(airlines));
-        dispatch(asyncProcessSuccess());
+        dispatch(asyncActionSuccess());
 
     } catch (e) {
         console.error(e);
-        dispatch(asyncProcessFailed(e));
+        dispatch(asyncActionFailed(e));
     }
 };
 
 export const submitFundingFee = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
-        dispatch(asyncProcessStarted('Paying funding fee'));
+        dispatch(asyncActionStarted({ name: 'Paying funding fee', showNotification: true }));
         await flightSuretyService.submitFundingFee();
 
-        dispatch(asyncProcessSuccess());
+        dispatch(asyncActionSuccess());
         dispatch(fetchAirlines());
     } catch (e) {
         console.error(e);
-        dispatch(asyncProcessFailed(e));
+        dispatch(asyncActionFailed(e));
     }
 };
 
 export const registerAirline = (name: string, account: string, history: H.History): AppThunk => async (dispatch: AppDispatch) => {
     try {
-        dispatch(asyncProcessStarted('Register new airline'));
+        dispatch(asyncActionStarted({ name: 'Register new airline', showNotification: true }));
         await flightSuretyService.registerAirline(name, account);
 
-        dispatch(asyncProcessSuccess());
+        dispatch(asyncActionSuccess());
         setTimeout(() => {
             history.push('/airlines');
         }, 2000);
     } catch (e) {
         console.error(e);
-        dispatch(asyncProcessFailed(e));
+        dispatch(asyncActionFailed(e));
     }
 };
 

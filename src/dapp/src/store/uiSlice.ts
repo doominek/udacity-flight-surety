@@ -1,34 +1,42 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface UiState {
-    action?: string;
-    loading: boolean;
-    lastError?: string;
+    action?: AsyncAction;
 }
 
 const initialState: UiState = {
-    loading: false
 };
+
+export type AsyncActionState =  'pending' | 'error' | 'success';
+
+export interface AsyncAction {
+  state: AsyncActionState;
+  name: string;
+  error?: string;
+  showNotification: boolean;
+}
 
 const uiSlice = createSlice({
                                 name: 'ui',
                                 initialState,
                                 reducers: {
-                                    asyncProcessStarted(state, action: PayloadAction<string>) {
-                                        state.loading = true;
-                                        state.action = action.payload;
+                                    asyncActionStarted(state, action: PayloadAction<{ name: string, showNotification: boolean }>) {
+                                        state.action = {
+                                          state: 'pending',
+                                          name: action.payload.name,
+                                          showNotification: action.payload.showNotification
+                                        }
                                     },
-                                    asyncProcessSuccess(state) {
-                                        state.action = undefined;
-                                        state.loading = false;
+                                    asyncActionSuccess(state) {
+                                        state.action!.state = 'success';
                                     },
-                                    asyncProcessFailed(state, action: PayloadAction<Error>) {
-                                        state.lastError = action.payload.message;
-                                        state.loading = false;
+                                    asyncActionFailed(state, action: PayloadAction<Error>) {
+                                        state.action!.error = action.payload.message;
+                                        state.action!.state = 'error';
                                     }
                                 }
                             });
 
-export const { asyncProcessStarted, asyncProcessSuccess, asyncProcessFailed } = uiSlice.actions;
+export const { asyncActionStarted, asyncActionSuccess, asyncActionFailed } = uiSlice.actions;
 
 export default uiSlice.reducer;
