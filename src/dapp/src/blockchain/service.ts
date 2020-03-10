@@ -44,11 +44,11 @@ class FlightSuretyService {
     }
 
     async voteToAcceptRequest(requester: string) {
-        await this.flightSuretyApp.methods.voteToAcceptRequest(requester).call({ from: this.defaultAccount });
+        await this.flightSuretyApp.methods.voteToAcceptRequest(requester).send({ from: this.defaultAccount });
     }
 
     async voteToRejectRequest(requester: string) {
-        await this.flightSuretyApp.methods.voteToRejectRequest(requester).call({ from: this.defaultAccount });
+        await this.flightSuretyApp.methods.voteToRejectRequest(requester).send({ from: this.defaultAccount });
     }
 
     private parseAirline(data: any[]): Airline {
