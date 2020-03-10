@@ -16,6 +16,17 @@ export interface AsyncAction {
     showNotification: boolean;
 }
 
+const processErrorMessage = (error: Error): string => {
+    if (error.message.startsWith("[object Object]")) {
+        // Probably MetaMask error
+        const data = JSON.parse(error.message.substring(16));
+
+        return data.message?.replace('VM Exception while processing transaction: revert ', '') || 'Unknown';
+    }
+
+    return error.message;
+};
+
 const uiSlice = createSlice({
                                 name: 'ui',
                                 initialState,
@@ -33,7 +44,7 @@ const uiSlice = createSlice({
                                         state.action!.state = 'success';
                                     },
                                     asyncActionFailed(state, action: PayloadAction<Error>) {
-                                        state.action!.error = action.payload.message;
+                                        state.action!.error = processErrorMessage(action.payload);
                                         state.action!.state = 'error';
                                     },
                                     dismissAction(state) {
