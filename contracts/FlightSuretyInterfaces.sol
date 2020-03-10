@@ -19,9 +19,9 @@ interface FlightSuretyAirlinesDataContract {
 
     function createRequest(bytes32 name, address requester) external;
 
-    function voteToAcceptRequest(address requester) external;
+    function voteToAcceptRequest(address requester, address approver) external;
 
-    function voteToRejectRequest(address requester) external;
+    function voteToRejectRequest(address requester, address rejecter) external;
 
     function acceptRequest(address requester) external;
 

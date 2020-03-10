@@ -56,16 +56,15 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
         requests[requester] = request;
     }
 
-    function voteToAcceptRequest(address requester) external {
+    function voteToAcceptRequest(address requester, address approver) external {
         AirlineJoinRequest storage request = requests[requester];
-        // FIXME: should it be msg.sender?
-        request.votes[msg.sender] = VoteStatus.ACCEPT;
+        request.votes[approver] = VoteStatus.ACCEPT;
         request.totalAccepted += 1;
     }
 
-    function voteToRejectRequest(address requester) external {
+    function voteToRejectRequest(address requester, address rejecter) external {
         AirlineJoinRequest storage request = requests[requester];
-        request.votes[msg.sender] = VoteStatus.REJECT;
+        request.votes[rejecter] = VoteStatus.REJECT;
         request.totalRejected += 1;
     }
 

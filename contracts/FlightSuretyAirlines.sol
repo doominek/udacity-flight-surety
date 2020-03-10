@@ -87,7 +87,7 @@ contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
             assignAirlineRole(account);
         } else {
             flightSuretyAirlinesData.createRequest(name, account);
-            flightSuretyAirlinesData.voteToAcceptRequest(account);
+            flightSuretyAirlinesData.voteToAcceptRequest(account, msg.sender);
         }
     }
 
@@ -101,12 +101,12 @@ contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
     }
 
     function voteToAcceptRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
-        flightSuretyAirlinesData.voteToAcceptRequest(requester);
+        flightSuretyAirlinesData.voteToAcceptRequest(requester, msg.sender);
         tryFinalizeRequest(requester);
     }
 
     function voteToRejectRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
-        flightSuretyAirlinesData.voteToRejectRequest(requester);
+        flightSuretyAirlinesData.voteToRejectRequest(requester, msg.sender);
         tryFinalizeRequest(requester);
     }
 
