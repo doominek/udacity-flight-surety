@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import React from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import { Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 import { AccountInfo } from './AccountInfo';
 
 
 export const MainMenu: React.FC = () => {
-    const [ activeItem, setActiveItem ] = useState('home');
     const history = useHistory();
+    const location = useLocation();
 
     const handleItemClick = (e: any, { name }: MenuItemProps) => {
         if (name) {
-            setActiveItem(name);
             history.push(`${name}`)
         }
     };
@@ -33,7 +32,7 @@ export const MainMenu: React.FC = () => {
     return <Menu>
         <Menu.Item
             name='/home'
-            active={activeItem === '/home'}
+            active={location.pathname === '/home'}
             onClick={handleItemClick}>
             <Icon name={'bars'}/>
         </Menu.Item>
@@ -47,7 +46,7 @@ export const MainMenu: React.FC = () => {
                 <Menu.Item
                     key={idx}
                     name={route.path}
-                    active={activeItem === route.path}
+                    active={location.pathname === route.path}
                     onClick={handleItemClick}>
                     {route.name}
                 </Menu.Item>
