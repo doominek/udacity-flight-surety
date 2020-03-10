@@ -1,113 +1,66 @@
-import React, { useState } from 'react';
+import React, { useEffect, Fragment } from 'react';
 import './App.css';
-import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
-import { Container, Icon, Menu, MenuItemProps } from 'semantic-ui-react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Container, Dimmer, Header, Icon, Loader, Message } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
 import Home from './pages/Home';
 import { initialize } from './store/blockchainSlice';
+import { Airlines } from './pages/airlines/Airlines';
+import { AddAirline } from './pages/airlines/AddAirline';
+import { MainMenu } from './components/MainMenu';
 import { RootState } from './store/reducers';
+import { ConnectionError } from "./pages/ConnectionError";
+import { useToasts } from "react-toast-notifications";
+import { AsyncActionNotifier } from "./components/AsyncActionNotifier";
 
 function App() {
     const dispatch = useDispatch();
-    dispatch(initialize());
 
-    return (
-        <Router>
-            <div>
-                <Header/>
+    useEffect(() => {
+        dispatch(initialize());
+    }, [ dispatch ]);
 
-                <Container>
-                    <Switch>
-                        <Route path="/about">
-                            <About/>
-                        </Route>
-                        <Route path="/users">
-                            <Users/>
-                        </Route>
-                        <Route path="/">
-                            <Home/>
-                        </Route>
-                    </Switch>
-                </Container>
-            </div>
-        </Router>
-    );
-}
+    const { initialized, error  } = useSelector((state: RootState) => ({
+        initialized: state.blockchain.initialized,
+        error: state.blockchain.error
+    }));
 
-function Header() {
-    const [ activeItem, setActiveItem ] = useState('home');
-    const history = useHistory();
-    const handleItemClick = (e: any, { name }: MenuItemProps) => {
-        if (name) {
-            setActiveItem(name);
-            history.push(`/${name}`)
-        }
+    const renderConnectionInProgress = () => {
+        return <Container textAlign='center'>
+            <Header as={'h2'}>Flight Surety</Header>
+            Connecting to network
+        </Container>
     };
 
-    return <Menu>
-        <Menu.Item
-            name='home'
-            active={activeItem === 'home'}
-            onClick={handleItemClick}>
-            <Icon name={'bars'}/>
-        </Menu.Item>
-
-        <Menu.Item
-            name='about'
-            active={activeItem === 'about'}
-            onClick={handleItemClick}>
-            About
-        </Menu.Item>
-
-        <Menu.Item
-            name='users'
-            active={activeItem === 'users'}
-            onClick={handleItemClick}>
-            Users
-        </Menu.Item>
-
-        <AccountInfo/>
-    </Menu>;
-}
-
-const formatAccount = (account: string): string => {
-    const first = account.substring(0, 6);
-    const last = account.substring(account.length - 4);
-    return `${first}...${last}`;
-};
-
-function AccountInfo() {
-    const info = useSelector(
-        (state: RootState) => ({ account: state.blockchain.account, role: state.blockchain.role }));
-
-    if (!info.account) {
-        return null;
+    if (error) {
+        return <ConnectionError error={error} />;
     }
 
-    const renderRoleIcon = (role?: string) => {
-        if (role === 'airline') {
-            return <Icon name='plane' />
-        } else if (role === 'passenger') {
-            return <Icon name='user' />
-        }
+    if (!initialized) {
+        return <Dimmer active inverted>
+            <Loader inverted content={ renderConnectionInProgress() } />
+        </Dimmer>;
+    }
 
-        return role;
-    };
+    return <Router>
+        <MainMenu/>
 
+        <Container>
+            <Switch>
+                <Route exact path='/airlines'>
+                    <Airlines/>
+                </Route>
+                <Route exact path='/airlines/add'>
+                    <AddAirline/>
+                </Route>
+                <Route path="/">
+                    <Home/>
+                </Route>
+            </Switch>
+        </Container>
 
-    return <Menu.Menu position='right'>
-        <Menu.Item>
-            { renderRoleIcon(info.role) } { formatAccount(info.account) }
-        </Menu.Item>
-    </Menu.Menu>
-}
-
-function About() {
-    return <h2>About</h2>;
-}
-
-function Users() {
-    return <h2>Users</h2>;
+        <AsyncActionNotifier />
+    </Router>;
 }
 
 export default App;

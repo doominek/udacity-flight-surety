@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import 'semantic-ui-css/semantic.min.css'
 import * as serviceWorker from './serviceWorker';
 import { Provider } from 'react-redux';
+import { ToastProvider } from 'react-toast-notifications';
 
 import App from './App';
 import './index.css';
@@ -10,7 +11,9 @@ import store from './store/config';
 
 ReactDOM.render(
     <Provider store={store}>
-        <App/>
+        <ToastProvider placement={"top-right"} autoDismiss autoDismissTimeout={3000}>
+            <App/>
+        </ToastProvider>
     </Provider>,
     document.getElementById('root'));
 
