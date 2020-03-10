@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Container, Dimmer, Loader } from 'semantic-ui-react';
+import { Container, Dimmer, Header, Icon, Loader, Message } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
 import Home from './pages/Home';
 import { initialize } from './store/blockchainSlice';
@@ -9,6 +9,7 @@ import { Airlines } from './pages/airlines/Airlines';
 import { AddAirline } from './pages/airlines/AddAirline';
 import { MainMenu } from './components/MainMenu';
 import { RootState } from './store/reducers';
+import { ConnectionError } from "./pages/ConnectionError";
 
 
 function App() {
@@ -23,9 +24,20 @@ function App() {
         error: state.blockchain.error
     }));
 
+    const renderConnectionInProgress = () => {
+        return <Container textAlign='center'>
+            <Header as={'h2'}>Flight Surety</Header>
+            Connecting to network
+        </Container>
+    };
+
+    if (error) {
+        return <ConnectionError error={error} />;
+    }
+
     if (!initialized) {
         return <Dimmer active inverted>
-            <Loader inverted content='Connecting to network'/>
+            <Loader inverted content={ renderConnectionInProgress() } />
         </Dimmer>;
     }
 
