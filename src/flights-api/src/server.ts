@@ -4,7 +4,7 @@ import { setupOracles } from './oracles/oracles';
 
 import flightsRouter from './routes/flights';
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 
 const app = express();
 
