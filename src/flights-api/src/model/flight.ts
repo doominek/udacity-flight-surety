@@ -1,3 +1,4 @@
+import Web3Utils from 'web3-utils';
 import moment from 'moment';
 
 export enum FlightStatus {
@@ -10,15 +11,18 @@ export enum FlightStatus {
 }
 
 export class Airline {
-    constructor(private readonly name: string,
-                private readonly account: string) {
+    constructor(public readonly name: string,
+                public readonly account: string) {
     }
 }
 
 export class Flight {
-    constructor(private readonly airline: Airline,
-                private readonly code: string,
-                private readonly date: moment.Moment,
+    public readonly key: string;
+
+    constructor(public readonly airline: Airline,
+                public readonly code: string,
+                public readonly date: moment.Moment,
                 public status: FlightStatus) {
+        this.key = Web3Utils.soliditySha3(this.airline.account, this.code, this.date.unix());
     }
 }
