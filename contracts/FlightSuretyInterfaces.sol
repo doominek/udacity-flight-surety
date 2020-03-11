@@ -9,6 +9,17 @@ interface FlightSuretyAirlinesDataContract {
         view
         returns (bytes32[] memory _names, address[] memory _accounts, uint256[] memory _dates, bool[] memory _paid);
 
+    function getAllRequests()
+        external
+        view
+        returns (
+            bytes32[] memory _name,
+            address[] memory _account,
+            uint8[] memory _votesAccepted,
+            uint8[] memory _votesRejected,
+            uint8[] memory _status
+        );
+
     function addAirline(bytes32 name, address account) external;
 
     function numberOfAirlines() external view returns (uint256);
@@ -19,9 +30,9 @@ interface FlightSuretyAirlinesDataContract {
 
     function createRequest(bytes32 name, address requester) external;
 
-    function voteToAcceptRequest(address requester) external;
+    function voteToAcceptRequest(address requester, address approver) external;
 
-    function voteToRejectRequest(address requester) external;
+    function voteToRejectRequest(address requester, address rejecter) external;
 
     function acceptRequest(address requester) external;
 

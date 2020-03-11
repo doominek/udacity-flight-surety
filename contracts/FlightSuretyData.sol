@@ -31,6 +31,7 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
     }
 
     mapping(address => AirlineJoinRequest) public requests;
+    address[] private requesters;
 
     function addAirline(bytes32 name, address account) external {
         airlineIndexByAccount[account] = airlines.length;
@@ -54,18 +55,18 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
             status: RequestStatus.PENDING
         });
         requests[requester] = request;
+        requesters.push(requester);
     }
 
-    function voteToAcceptRequest(address requester) external {
+    function voteToAcceptRequest(address requester, address approver) external {
         AirlineJoinRequest storage request = requests[requester];
-        // FIXME: should it be msg.sender?
-        request.votes[msg.sender] = VoteStatus.ACCEPT;
+        request.votes[approver] = VoteStatus.ACCEPT;
         request.totalAccepted += 1;
     }
 
-    function voteToRejectRequest(address requester) external {
+    function voteToRejectRequest(address requester, address rejecter) external {
         AirlineJoinRequest storage request = requests[requester];
-        request.votes[msg.sender] = VoteStatus.REJECT;
+        request.votes[rejecter] = VoteStatus.REJECT;
         request.totalRejected += 1;
     }
 
@@ -126,6 +127,35 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
         }
 
         return (names, accounts, dates, paid);
+    }
+
+    function getAllRequests()
+        external
+        view
+        returns (
+            bytes32[] memory _name,
+            address[] memory _account,
+            uint8[] memory _votesAccepted,
+            uint8[] memory _votesRejected,
+            uint8[] memory _status
+        )
+    {
+        bytes32[] memory name = new bytes32[](requesters.length);
+        address[] memory account = new address[](requesters.length);
+        uint8[] memory votesAccepted = new uint8[](requesters.length);
+        uint8[] memory votesRejected = new uint8[](requesters.length);
+        uint8[] memory status = new uint8[](requesters.length);
+
+        for (uint256 i = 0; i < requesters.length; i++) {
+            AirlineJoinRequest storage request = requests[requesters[i]];
+            name[i] = bytes32(request.name);
+            account[i] = requesters[i];
+            votesAccepted[i] = request.totalAccepted;
+            votesRejected[i] = request.totalRejected;
+            status[i] = uint8(request.status);
+        }
+
+        return (name, account, votesAccepted, votesRejected, status);
     }
 }
 

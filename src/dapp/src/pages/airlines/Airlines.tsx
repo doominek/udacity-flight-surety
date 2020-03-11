@@ -1,13 +1,13 @@
 import React, { Fragment, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Checkbox, Icon, Table } from 'semantic-ui-react';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
-import { fetchAirlines, submitFundingFee } from '../../store/airlinesSlice';
+import { fetchAirlines, fetchRequests, submitFundingFee } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
 import { formatAccount } from '../../common/utils';
 import moment from 'moment';
-import { Airline } from '../../types/airlines';
+import { Airline, RequestStatus } from '../../types/airlines';
 
 export const Airlines: React.FC = () => {
     const dispatch = useDispatch();
@@ -15,13 +15,15 @@ export const Airlines: React.FC = () => {
 
     useEffect(() => {
         dispatch(fetchAirlines());
+        dispatch(fetchRequests());
     }, [ dispatch ]);
 
 
-    const { action, airlines, account } = useSelector((state: RootState) => ({
+    const { action, airlines, account, pendingRequests = 0 } = useSelector((state: RootState) => ({
         action: state.ui.action,
         airlines: state.airlines.airlines,
-        account: state.blockchain.account
+        account: state.blockchain.account,
+        pendingRequests: state.airlines.requests.filter(r => r.status === RequestStatus.PENDING).length
     }));
 
     const navigateToAddAirline = () => {
@@ -43,6 +45,7 @@ export const Airlines: React.FC = () => {
     }
 
     return <Fragment>
+        <h3>Airlines List</h3>
         <Table celled compact definition>
             <Table.Header fullWidth>
                 <Table.Row>
@@ -70,7 +73,10 @@ export const Airlines: React.FC = () => {
 
             <Table.Footer fullWidth>
                 <Table.Row>
-                    <Table.HeaderCell colSpan='5'>
+                    <Table.HeaderCell colSpan='3'>
+                        { pendingRequests > 0 && <p>Pending requests: {pendingRequests} <Link to='/airlines/requests'>>></Link></p> }
+                    </Table.HeaderCell>
+                    <Table.HeaderCell colSpan='2'>
                         <Button
                             floated='right'
                             icon
