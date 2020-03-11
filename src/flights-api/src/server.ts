@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
+import bodyParser from 'body-parser';
 import { setupOracles } from './oracles/oracles';
 
 import flightsRouter from './routes/flights';
@@ -9,6 +10,7 @@ const { PORT = 3001 } = process.env;
 const app = express();
 
 app.use(morgan('tiny'));
+app.use(bodyParser.json());
 
 app.get('/', (req: Request, res: Response) => {
     res.send({
