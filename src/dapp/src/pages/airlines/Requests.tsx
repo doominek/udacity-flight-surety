@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchRequests, voteToAccept, voteToReject } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
 import { Request, RequestStatus } from '../../types/airlines';
-import { Button, Table } from 'semantic-ui-react';
+import { Button, Icon, Label, Table } from 'semantic-ui-react';
 import { formatAccount } from '../../common/utils';
 import { AsyncAction } from '../../store/uiSlice';
 
@@ -68,7 +68,16 @@ export const Requests = () => {
                     <Table.Row key={idx}>
                         <Table.Cell>{request.name}</Table.Cell>
                         <Table.Cell>{formatAccount(request.account)}</Table.Cell>
-                        <Table.Cell>{request.votesAccepted} / {request.votesRejected}</Table.Cell>
+                        <Table.Cell>
+                            <Label>
+                                <Icon name='thumbs up' color='green' />
+                                {request.votesAccepted}
+                            </Label>/
+                            <Label>
+                                <Icon name='thumbs down' color='red' />
+                                {request.votesRejected}
+                            </Label>
+                            </Table.Cell>
                         <Table.Cell>{renderVotingButtons(request)}</Table.Cell>
                     </Table.Row>
                 ))}
