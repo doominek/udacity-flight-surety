@@ -45,6 +45,7 @@ export const Airlines: React.FC = () => {
     }
 
     return <Fragment>
+        <h3>Airlines List</h3>
         <Table celled compact definition>
             <Table.Header fullWidth>
                 <Table.Row>
