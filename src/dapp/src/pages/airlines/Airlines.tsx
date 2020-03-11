@@ -19,7 +19,7 @@ export const Airlines: React.FC = () => {
     }, [ dispatch ]);
 
 
-    const { action, airlines, account, pendingRequests } = useSelector((state: RootState) => ({
+    const { action, airlines, account, pendingRequests = 0 } = useSelector((state: RootState) => ({
         action: state.ui.action,
         airlines: state.airlines.airlines,
         account: state.blockchain.account,
@@ -74,7 +74,7 @@ export const Airlines: React.FC = () => {
             <Table.Footer fullWidth>
                 <Table.Row>
                     <Table.HeaderCell colSpan='3'>
-                        { pendingRequests && <p>Pending requests: {pendingRequests} <Link to='/airlines/requests'>>></Link></p> }
+                        { pendingRequests > 0 && <p>Pending requests: {pendingRequests} <Link to='/airlines/requests'>>></Link></p> }
                     </Table.HeaderCell>
                     <Table.HeaderCell colSpan='2'>
                         <Button

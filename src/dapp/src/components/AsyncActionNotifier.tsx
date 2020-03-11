@@ -24,7 +24,7 @@ export const AsyncActionNotifier: React.FC = () => {
                 break;
             case 'success':
                 if (action.showNotification) {
-                    addToast(`${action.name} successful.`, { appearance: 'success' });
+                    addToast(`${action.name} completed successfully.`, { appearance: 'success' });
                     dispatch(dismissAction());
                 }
                 break;

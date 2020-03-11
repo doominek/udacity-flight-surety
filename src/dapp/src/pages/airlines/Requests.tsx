@@ -7,6 +7,7 @@ import { Button, Icon, Label, List, Table } from 'semantic-ui-react';
 import { formatAccount } from '../../common/utils';
 import { AsyncAction } from '../../store/uiSlice';
 import { SemanticSIZES } from 'semantic-ui-react/dist/commonjs/generic';
+import * as _ from 'lodash';
 
 export const Requests = () => {
     const dispatch = useDispatch();
@@ -100,6 +101,12 @@ const PendingRequests: React.FC<{
     onVoteToAccept: (request: Request) => void,
     onVoteToReject: (request: Request) => void
 }> = ({ requests, acceptingInProgress, rejectingInProgress, onVoteToAccept, onVoteToReject }) => {
+    if (_.isEmpty(requests)) {
+        return <Fragment>
+            <h4>No pending requests found</h4>
+        </Fragment>
+    }
+
     const renderVotingButtons = (request: Request) => {
         return (
             <Fragment>
