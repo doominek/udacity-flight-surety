@@ -1,9 +1,19 @@
 import React, { Fragment, useState } from "react";
 import { Label, Popup } from "semantic-ui-react";
+import copy from 'copy-to-clipboard';
+
 import { formatAccount } from "../common/utils";
 
 export const Address: React.FC<{ value: string }> = ({ value }) => {
   const [popup, setPopup] = useState("Click to copy");
+
+  const copyToClipboard = () => {
+    console.log('Trying to copy to clipboard', value);
+    const copied = copy(value, { debug: true });
+    if (copied) {
+      setPopup("Copied!");
+    }
+  };
 
   return <Fragment>
     <Popup
@@ -15,7 +25,7 @@ export const Address: React.FC<{ value: string }> = ({ value }) => {
       on='hover'
       inverted
       size='tiny'
-      trigger={<Label as='a' onClick={() => setPopup("Copied!")}>{formatAccount(value)}</Label>}
+      trigger={<Label as='a' onClick={copyToClipboard}>{formatAccount(value)}</Label>}
     />
   </Fragment>;
 };
