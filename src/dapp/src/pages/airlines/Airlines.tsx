@@ -1,17 +1,18 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Checkbox, Icon, Table } from 'semantic-ui-react';
+import { Button, Checkbox, Icon, Label, Popup, Reveal, Table } from "semantic-ui-react";
 import { Link, useHistory } from 'react-router-dom';
 
 import { fetchAirlines, fetchRequests, submitFundingFee } from '../../store/airlinesSlice';
 import { RootState } from '../../store/reducers';
-import { formatAccount } from '../../common/utils';
 import moment from 'moment';
 import { Airline, RequestStatus } from '../../types/airlines';
+import { Address } from "../../components/Address";
 
 export const Airlines: React.FC = () => {
     const dispatch = useDispatch();
     const history = useHistory();
+
 
     useEffect(() => {
         dispatch(fetchAirlines());
@@ -44,6 +45,7 @@ export const Airlines: React.FC = () => {
         return <div>Loading data...</div>;
     }
 
+
     return <Fragment>
         <h3>Airlines List</h3>
         <Table celled compact definition>
@@ -61,7 +63,9 @@ export const Airlines: React.FC = () => {
                 {airlines.map((airline, idx) => (
                     <Table.Row key={idx}>
                         <Table.Cell>{airline.name}</Table.Cell>
-                        <Table.Cell>{formatAccount(airline.account)}</Table.Cell>
+                        <Table.Cell>
+                            <Address value={airline.account}/>
+                        </Table.Cell>
                         <Table.Cell>{moment.unix(airline.date).format('LLL')}</Table.Cell>
                         <Table.Cell><Checkbox checked={airline.paid}/></Table.Cell>
                         <Table.Cell>
