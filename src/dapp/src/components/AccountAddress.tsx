@@ -4,7 +4,7 @@ import copy from 'copy-to-clipboard';
 
 import { formatAccount } from "../common/utils";
 
-export const Address: React.FC<{ value: string }> = ({ value }) => {
+export const AccountAddress: React.FC<{ value: string }> = ({ value }) => {
   const [popup, setPopup] = useState("Click to copy");
 
   const copyToClipboard = () => {

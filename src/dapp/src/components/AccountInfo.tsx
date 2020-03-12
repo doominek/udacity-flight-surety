@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/reducers';
 import { Icon, Menu } from 'semantic-ui-react';
 import React from 'react';
-import { formatAccount } from '../common/utils';
+import { AccountAddress } from "./AccountAddress";
 
 export const AccountInfo = () => {
     const info = useSelector(
@@ -25,7 +25,7 @@ export const AccountInfo = () => {
 
     return <Menu.Menu position='right'>
         <Menu.Item>
-            {renderRoleIcon(info.role)} {formatAccount(info.account)}
+            {renderRoleIcon(info.role)} <AccountAddress value={info.account}/>
         </Menu.Item>
     </Menu.Menu>
 }
