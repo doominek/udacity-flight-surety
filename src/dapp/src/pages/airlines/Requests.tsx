@@ -60,10 +60,10 @@ const FinalizedRequests: React.FC<{
         return <List.Item key={request.account}>
             <List.Icon color={color} name={icon} size='large' verticalAlign='middle'/>
             <List.Content>
-                <List.Header as='h4'><Label color='blue'>{request.name}</Label></List.Header>
+                <List.Header as='h3'>{request.name}</List.Header>
                 <List.Description as='a'>
-                    <p><AccountAddress value={request.account}/></p>
-                    <VotesSummary size='mini' accepted={request.votesAccepted} rejected={request.votesRejected}/>
+                    <AccountAddress value={request.account}/>
+                    <VotesSummary size='medium' accepted={request.votesAccepted} rejected={request.votesRejected}/>
                 </List.Description>
             </List.Content>
         </List.Item>;
