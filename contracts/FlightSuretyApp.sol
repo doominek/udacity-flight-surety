@@ -32,7 +32,7 @@ contract FlightSuretyApp is FlightSuretyPassengers {
     }
 
     // Generate a request for oracles to fetch flight information
-    function fetchFlightStatus(address airline, string calldata flight, uint256 timestamp) external {
+    function fetchFlightStatus(address airline, string calldata flight, uint256 timestamp) external whenNotPaused {
         uint8 index = getRandomIndex(msg.sender, keccak256(abi.encode(airline, flight, timestamp)));
 
         // Generate a unique key for storing the request

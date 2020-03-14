@@ -19,7 +19,7 @@ contract FlightSuretyPassengers is FlightSuretyAirlines {
     uint256 private constant MAX_INSURANCE_FEE = 1 ether;
     uint256 private constant DELAYED_FLIGHT_PRC_MULTIPLIER = 150;
 
-    function purchaseInsurance(bytes32 flightKey) external payable {
+    function purchaseInsurance(bytes32 flightKey) external payable whenNotPaused {
         require(msg.value <= MAX_INSURANCE_FEE, "Maximum allowed insurance fee is 1 ether.");
 
         flightSuretyPassengersData.addInsurance(flightKey, msg.sender, msg.value);
@@ -33,11 +33,11 @@ contract FlightSuretyPassengers is FlightSuretyAirlines {
         return flightSuretyPassengersData.getAllInsurances(msg.sender);
     }
 
-    function creditInsured(bytes32 flightKey) external {
+    function creditInsured(bytes32 flightKey) external whenNotPaused {
         flightSuretyPassengersData.setInsuranceForPayout(flightKey, DELAYED_FLIGHT_PRC_MULTIPLIER);
     }
 
-    function payoutAll() external {
+    function payoutAll() external whenNotPaused {
         uint256 payoutTotal = flightSuretyPassengersData.totalAvailablePayoutAmount(msg.sender);
         flightSuretyPassengersData.setInsurancesAsRepaid(msg.sender);
 
