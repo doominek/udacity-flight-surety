@@ -59,12 +59,12 @@ class FlightSuretyService {
     }
 
     private parseInsurance(data: any[]): Insurance {
-        const [flight, paidAmount, status, lastModifiedDate] = data;
+        const [flight, paidAmount, lastModifiedDate, status] = data;
         return {
             flight,
             paidAmount,
-            status: status.toNumber(),
-            lastModifiedDate: moment.unix(lastModifiedDate)
+            status: parseInt(status),
+            lastModifiedDate: parseInt(lastModifiedDate)
         };
     }
 
