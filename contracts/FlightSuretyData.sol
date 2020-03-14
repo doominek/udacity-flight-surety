@@ -7,7 +7,31 @@ import "../node_modules/openzeppelin-solidity/contracts/access/Roles.sol";
 import "./FlightSuretyInterfaces.sol";
 
 
-contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
+contract AuthorizedCallerRole {
+    using Roles for Roles.Role;
+
+    Roles.Role private authorizedCallers;
+
+    modifier onlyAuthorizedCaller() {
+        require(isAuthorizedCaller(msg.sender), "Caller is not authorized");
+        _;
+    }
+
+    function isAuthorizedCaller(address account) public view returns (bool) {
+        return authorizedCallers.has(account);
+    }
+
+    function addAuthorizedCaller(address account) internal {
+        authorizedCallers.add(account);
+    }
+
+    function removeAuthorizedCaller(address account) internal {
+        authorizedCallers.remove(account);
+    }
+}
+
+
+contract FlightSuretyAirlinesData is AuthorizedCallerRole, FlightSuretyAirlinesDataContract {
     struct Airline {
         bytes32 name;
         address account;
@@ -43,11 +67,11 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
         return airlines.length;
     }
 
-    function markFundingFeePaymentComplete(address airline) external {
+    function markFundingFeePaymentComplete(address airline) external onlyAuthorizedCaller {
         airlines[airlineIndexByAccount[airline]].paid = true;
     }
 
-    function createRequest(bytes32 name, address requester) external {
+    function createRequest(bytes32 name, address requester) external onlyAuthorizedCaller {
         AirlineJoinRequest memory request = AirlineJoinRequest({
             name: name,
             totalAccepted: 0,
@@ -58,19 +82,19 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
         requesters.push(requester);
     }
 
-    function voteToAcceptRequest(address requester, address approver) external {
+    function voteToAcceptRequest(address requester, address approver) external onlyAuthorizedCaller {
         AirlineJoinRequest storage request = requests[requester];
         request.votes[approver] = VoteStatus.ACCEPT;
         request.totalAccepted += 1;
     }
 
-    function voteToRejectRequest(address requester, address rejecter) external {
+    function voteToRejectRequest(address requester, address rejecter) external onlyAuthorizedCaller {
         AirlineJoinRequest storage request = requests[requester];
         request.votes[rejecter] = VoteStatus.REJECT;
         request.totalRejected += 1;
     }
 
-    function acceptRequest(address requester) external {
+    function acceptRequest(address requester) external onlyAuthorizedCaller {
         requests[requester].status = RequestStatus.ACCEPTED;
 
         airlineIndexByAccount[requester] = airlines.length;
@@ -78,7 +102,7 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
         airlines.push(airline);
     }
 
-    function rejectRequest(address requester) external {
+    function rejectRequest(address requester) external onlyAuthorizedCaller {
         requests[requester].status = RequestStatus.REJECTED;
     }
 
@@ -160,7 +184,7 @@ contract FlightSuretyAirlinesData is FlightSuretyAirlinesDataContract {
 }
 
 
-contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
+contract FlightSuretyOraclesData is FlightSuretyAirlinesData, FlightSuretyOraclesDataContract {
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
@@ -170,7 +194,7 @@ contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
 
     mapping(bytes32 => Flight) private flights;
 
-    function addFlight(address airline, string calldata flight, uint256 timestamp, uint8 statusCode) external {
+    function addFlight(address airline, string calldata flight, uint256 timestamp, uint8 statusCode) external onlyAuthorizedCaller {
         bytes32 key = getFlightKey(airline, flight, timestamp);
 
         Flight storage flightData = flights[key];
@@ -191,20 +215,14 @@ contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
         return (flightData.isRegistered, flightData.statusCode, flightData.updatedTimestamp);
     }
 
-    function addOracleResponseInfo(uint8 index, address airline, string calldata flight, uint256 timestamp, address requester) external {
+    function addOracleResponseInfo(uint8 index, address airline, string calldata flight, uint256 timestamp, address requester)
+        external
+        onlyAuthorizedCaller
+    {
         bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
 
         oracleResponses[key] = ResponseInfo({requester: requester, isOpen: true});
     }
-
-    // Incremented to add pseudo-randomness at various points
-    uint8 private nonce = 0;
-
-    // Fee to be paid when registering oracle
-    uint256 public constant ORACLE_REGISTRATION_FEE = 1 ether;
-
-    // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
 
     struct Oracle {
         bool isRegistered;
@@ -227,7 +245,7 @@ contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
     // Key = hash(index, flight, timestamp)
     mapping(bytes32 => ResponseInfo) private oracleResponses;
 
-    function registerOracle(address oracle, uint8[3] calldata indexes) external {
+    function registerOracle(address oracle, uint8[3] calldata indexes) external onlyAuthorizedCaller {
         oracles[oracle] = Oracle({isRegistered: true, indexes: indexes});
     }
 
@@ -259,7 +277,7 @@ contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
         uint256 timestamp,
         uint8 statusCode,
         address oracle
-    ) external {
+    ) external onlyAuthorizedCaller {
         bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
         oracleResponses[key].responses[statusCode].push(oracle);
     }
@@ -273,7 +291,7 @@ contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
         return oracleResponses[key].responses[statusCode].length;
     }
 
-    function closeOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp) external {
+    function closeOracleResponse(uint8 index, address airline, string calldata flight, uint256 timestamp) external onlyAuthorizedCaller {
         bytes32 key = getOracleResponseInfoKey(index, airline, flight, timestamp);
         oracleResponses[key].isOpen = false;
     }
@@ -292,7 +310,7 @@ contract FlightSuretyOraclesData is FlightSuretyOraclesDataContract {
 }
 
 
-contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
+contract FlightSuretyPassengersData is FlightSuretyOraclesData, FlightSuretyPassengersDataContract {
     using SafeMath for uint256;
 
     enum InsuranceStatus {PAID, FOR_PAYOUT, REPAID}
@@ -311,7 +329,7 @@ contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
     mapping(address => uint256[]) private passengerInsurances;
     mapping(bytes32 => uint256[]) private flightInsurances;
 
-    function addInsurance(bytes32 flightKey, address insured, uint256 paidAmount) external {
+    function addInsurance(bytes32 flightKey, address insured, uint256 paidAmount) external onlyAuthorizedCaller {
         Insurance memory insurance = Insurance({
             insured: insured,
             flight: flightKey,
@@ -347,7 +365,7 @@ contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
         return (flights, paidAmounts, statuses, lastModifiedDates);
     }
 
-    function setInsuranceForPayout(bytes32 flightKey, uint256 paidAmountPercentMultiplier) external {
+    function setInsuranceForPayout(bytes32 flightKey, uint256 paidAmountPercentMultiplier) external onlyAuthorizedCaller {
         for (uint256 i = 0; i < flightInsurances[flightKey].length; i++) {
             Insurance storage insurance = insurances[flightInsurances[flightKey][i]];
             insurance.creditAmount = insurance.paidAmount.mul(paidAmountPercentMultiplier).div(100);
@@ -369,7 +387,7 @@ contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
         return result;
     }
 
-    function setInsurancesAsRepaid(address insured) external {
+    function setInsurancesAsRepaid(address insured) external onlyAuthorizedCaller {
         for (uint256 i = 0; i < passengerInsurances[insured].length; i++) {
             Insurance storage insurance = insurances[passengerInsurances[insured][i]];
             if (insurance.status == InsuranceStatus.FOR_PAYOUT) {
@@ -381,63 +399,9 @@ contract FlightSuretyPassengersData is FlightSuretyPassengersDataContract {
 }
 
 
-contract AuthorizedCallerRole {
-    using Roles for Roles.Role;
-
-    Roles.Role private authorizedCallers;
-
-    modifier onlyAuthorizedCaller() {
-        require(isAuthorizedCaller(msg.sender), "Caller is not authorized");
-        _;
-    }
-
-    function isAuthorizedCaller(address account) public view returns (bool) {
-        return authorizedCallers.has(account);
-    }
-
-    function addAuthorizedCaller(address account) internal {
-        authorizedCallers.add(account);
-    }
-
-    function removeAuthorizedCaller(address account) internal {
-        authorizedCallers.remove(account);
-    }
-}
-
-
-contract FlightSuretyData is Ownable, AuthorizedCallerRole, FlightSuretyAirlinesData, FlightSuretyOraclesData, FlightSuretyPassengersData {
-    using SafeMath for uint256;
-
-    constructor() public {}
-
-    /**
-     * @dev Buy insurance for a flight
-     *
-     */
-    function buy() external payable {}
-
-    /**
-     *  @dev Credits payouts to insurees
-     */
-    function creditInsurees() external pure {}
-
-    /**
-     *  @dev Transfers eligible payout funds to insuree
-     *
-     */
-    function pay() external pure {}
-
-    /**
-     * @dev Initial funding for the insurance. Unless there are too many delayed flights
-     *      resulting in insurance payouts, the contract should be self-sustaining
-     *
-     */
+contract FlightSuretyData is Ownable, FlightSuretyPassengersData {
     function fund() public payable {}
 
-    /**
-     * @dev Fallback function for funding smart contract.
-     *
-     */
     function() external payable {
         fund();
     }
