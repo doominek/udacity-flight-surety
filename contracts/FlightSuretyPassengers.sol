@@ -33,7 +33,7 @@ contract FlightSuretyPassengers is FlightSuretyAirlines {
         return flightSuretyPassengersData.getAllInsurances(msg.sender);
     }
 
-    function creditInsured(bytes32 flightKey) external whenNotPaused {
+    function creditInsured(bytes32 flightKey) public whenNotPaused {
         flightSuretyPassengersData.setInsuranceForPayout(flightKey, DELAYED_FLIGHT_PRC_MULTIPLIER);
     }
 

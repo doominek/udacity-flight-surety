@@ -8,6 +8,8 @@ import "./FlightSuretyPassengers.sol";
 contract FlightSuretyOracles is FlightSuretyPassengers {
     FlightSuretyOraclesDataContract flightSuretyOraclesData;
 
+    uint8 private INSURANCE_PAYOUT_FLIGHT_STATUS = 20;
+
     constructor(bytes32 name, address account, address dataContractAddress)
         public
         FlightSuretyPassengers(name, account, dataContractAddress)
@@ -21,6 +23,10 @@ contract FlightSuretyOracles is FlightSuretyPassengers {
      */
     function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal {
         flightSuretyOraclesData.addFlight(airline, flight, timestamp, statusCode);
+
+        if (statusCode == INSURANCE_PAYOUT_FLIGHT_STATUS) {
+            creditInsured(getFlightKey(airline, flight, timestamp));
+        }
     }
 
     function getFlight(address airline, string calldata flight, uint256 timestamp)
@@ -135,5 +141,9 @@ contract FlightSuretyOracles is FlightSuretyPassengers {
         }
 
         return random;
+    }
+
+    function getFlightKey(address airline, string memory flight, uint256 timestamp) internal pure returns (bytes32) {
+        return keccak256(abi.encode(airline, flight, timestamp));
     }
 }
