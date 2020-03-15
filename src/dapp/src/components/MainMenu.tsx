@@ -14,6 +14,13 @@ export const MainMenu: React.FC = () => {
         }
     };
 
+    const passengersMainRoutes = [
+        {
+            name: 'Insurances',
+            path: '/passengers/insurances'
+        }
+    ];
+
     const airlineMainRoutes = [
         {
             name: 'Airlines',
@@ -40,6 +47,18 @@ export const MainMenu: React.FC = () => {
         <Menu.Item>
             <h3>Flight Surety</h3>
         </Menu.Item>
+
+        {
+            passengersMainRoutes.map((route, idx) => (
+                <Menu.Item
+                    key={idx}
+                    name={route.path}
+                    active={location.pathname === route.path}
+                    onClick={handleItemClick}>
+                    {route.name}
+                </Menu.Item>
+            ))
+        }
 
         {
             airlineMainRoutes.map((route, idx) => (

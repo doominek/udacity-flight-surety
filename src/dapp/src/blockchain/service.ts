@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import FlightSuretyApp from '../contracts/FlightSuretyApp.json';
 import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
 import { Airline, Request } from '../types/airlines';
-
+import { Insurance } from '../types/insurance';
 
 declare global {
     interface Window {
@@ -51,6 +51,33 @@ class FlightSuretyService {
         await this.flightSuretyApp.methods.voteToRejectRequest(requester).send({ from: this.defaultAccount });
     }
 
+    async payout() {
+        await this.flightSuretyApp.methods.payoutAll().send({ from: this.defaultAccount });
+    }
+
+    async getMyInsurances(): Promise<Insurance[]> {
+        return await this.flightSuretyApp.methods.getMyInsurances()
+                         .call({ from: this.defaultAccount })
+                         .then(result => this.parseInsurances(result));
+    }
+
+    private parseInsurance(flight: string, paidAmount: string, creditAmount: string, status: string): Insurance {
+        return {
+            flight,
+            paidAmount,
+            creditAmount,
+            status: parseInt(status)
+        };
+    }
+
+    private parseInsurances(data: { flight: string[], paidAmount: string[], status: string[], creditAmount: string[] }): Insurance[] {
+        return _.range(data?.flight?.length)
+                .map(idx => this.parseInsurance(data.flight[idx],
+                                                 data.paidAmount[idx],
+                                                 data.creditAmount[idx],
+                                                 data.status[idx]));
+    }
+
     private parseAirline(data: any[]): Airline {
         const [ name, account, date, paid ] = data;
         return {
@@ -62,7 +89,7 @@ class FlightSuretyService {
     }
 
     private parseAirlines(airlinesData: { _names: string[]; _accounts: string[]; _dates: string[]; _paid: boolean[]; '0': string[]; '1': string[]; '2': string[]; '3': boolean[] }) {
-        return _.range(airlinesData[0].length)
+        return _.range(airlinesData[0]?.length)
                 .map(idx => this.parseAirline([ airlinesData[0][idx],
                                                 airlinesData[1][idx],
                                                 airlinesData[2][idx],
@@ -74,7 +101,7 @@ class FlightSuretyService {
             return [];
         }
 
-        return _.range(requestsData._name.length)
+        return _.range(requestsData?._name?.length)
                 .map(idx => ({
                     name: this.web3.utils.hexToUtf8(requestsData._name[idx]),
                     account: requestsData._account[idx],

@@ -18,17 +18,17 @@ enum InsuranceStatus {
 interface Insurance {
     flight: string;
     paidAmount: string;
+    creditAmount: string;
     status: InsuranceStatus;
-    lastModifiedDate: moment.Moment
 }
 
 function parseInsurance(data: any[]): Insurance {
-    const [ flight, paidAmount, status, lastModifiedDate ] = data;
+    const [ flight, paidAmount, creditAmount, status ] = data;
     return {
         flight,
         paidAmount,
-        status: status.toNumber(),
-        lastModifiedDate: moment.unix(lastModifiedDate)
+        creditAmount,
+        status: status.toNumber()
     }
 }
 
