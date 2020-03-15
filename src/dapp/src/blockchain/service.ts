@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import FlightSuretyApp from '../contracts/FlightSuretyApp.json';
 import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
 import { Airline, Request } from '../types/airlines';
+import { Flight } from '../types/flights';
 
 
 declare global {
@@ -41,6 +42,11 @@ class FlightSuretyService {
 
     async getRequests(): Promise<Request[]> {
         return this.flightSuretyApp.methods.getAllRequests().call().then(result => this.parseRequests(result));
+    }
+
+    async getFlights(): Promise<Flight[]> {
+        return fetch('/api/flights')
+            .then(response => response.json());
     }
 
     async voteToAcceptRequest(requester: string) {

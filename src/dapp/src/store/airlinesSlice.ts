@@ -6,15 +6,18 @@ import { flightSuretyService } from '../blockchain/service';
 import { Airline, Request } from '../types/airlines';
 
 import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
+import { Flight } from '../types/flights';
 
 export interface AirlinesState {
     airlines: Airline[];
     requests: Request[];
+    flights: Flight[];
 }
 
 const initialState: AirlinesState = {
     airlines: [],
-    requests: []
+    requests: [],
+    flights: []
 };
 
 const airlinesSlice = createSlice({
@@ -26,6 +29,9 @@ const airlinesSlice = createSlice({
                                           },
                                           requestsLoaded(state, action: PayloadAction<Request[]>) {
                                               state.requests = action.payload;
+                                          },
+                                          flightsLoaded(state, action: PayloadAction<Flight[]>) {
+                                              state.flights = action.payload;
                                           }
                                       }
                                   });
@@ -77,6 +83,19 @@ export const fetchRequests = (): AppThunk => async (dispatch: AppDispatch) => {
         const requests = await flightSuretyService.getRequests();
 
         dispatch(airlinesSlice.actions.requestsLoaded(requests));
+        dispatch(asyncActionSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const fetchFlights = (): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Fetching Flights list', showNotification: false }));
+        const flights = await flightSuretyService.getFlights();
+
+        dispatch(airlinesSlice.actions.flightsLoaded(flights));
         dispatch(asyncActionSuccess());
     } catch (e) {
         console.error(e);

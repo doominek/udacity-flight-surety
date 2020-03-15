@@ -12,6 +12,7 @@ import { RootState } from './store/reducers';
 import { ConnectionError } from './pages/ConnectionError';
 import { AsyncActionNotifier } from './components/AsyncActionNotifier';
 import { Requests } from './pages/airlines/Requests';
+import { Flights } from './pages/airlines/Flights';
 
 function App() {
     const dispatch = useDispatch();
@@ -55,6 +56,9 @@ function App() {
                 </Route>
                 <Route exact path='/airlines/requests'>
                     <Requests/>
+                </Route>
+                <Route exact path='/airlines/flights'>
+                    <Flights/>
                 </Route>
                 <Route path="/">
                     <Home/>

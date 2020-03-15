@@ -3,7 +3,7 @@ export interface Airline {
     account: string;
     date: number;
     paid: boolean;
-};
+}
 
 export enum RequestStatus {
     PENDING,
@@ -17,5 +17,5 @@ export interface Request {
     votesAccepted: number;
     votesRejected: number;
     status: RequestStatus
-};
+}
 
