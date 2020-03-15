@@ -6,7 +6,7 @@ import { flightSuretyService } from '../blockchain/service';
 import { Airline, Request } from '../types/airlines';
 
 import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
-import { Flight } from '../types/flights';
+import { Flight, FlightStatus } from '../types/flights';
 
 export interface AirlinesState {
     airlines: Airline[];
@@ -32,6 +32,12 @@ const airlinesSlice = createSlice({
                                           },
                                           flightsLoaded(state, action: PayloadAction<Flight[]>) {
                                               state.flights = action.payload;
+                                          },
+                                          flightStatusUpdated(state, action: PayloadAction<{ flightKey: string, status: FlightStatus }>) {
+                                              const flight = state.flights.find(f => f.key === action.payload.flightKey);
+                                              if (flight) {
+                                                  flight.status = action.payload.status;
+                                              }
                                           }
                                       }
                                   });
@@ -123,6 +129,19 @@ export const voteToReject = (request: Request): AppThunk => async (dispatch: App
 
         dispatch(asyncActionSuccess());
         dispatch(fetchRequests());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const updateFlightStatus = (flightKey: string, status: FlightStatus): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Updating flight status', showNotification: true, context: { flightKey } }));
+        await flightSuretyService.updateFlightStatus(flightKey, status);
+
+        dispatch(airlinesSlice.actions.flightStatusUpdated({ flightKey, status }));
+        dispatch(asyncActionSuccess());
     } catch (e) {
         console.error(e);
         dispatch(asyncActionFailed(e));
