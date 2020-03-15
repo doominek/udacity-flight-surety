@@ -51,6 +51,10 @@ class FlightSuretyService {
         await this.flightSuretyApp.methods.voteToRejectRequest(requester).send({ from: this.defaultAccount });
     }
 
+    async payout() {
+        await this.flightSuretyApp.methods.payoutAll().send({ from: this.defaultAccount });
+    }
+
     async getMyInsurances(): Promise<Insurance[]> {
         return await this.flightSuretyApp.methods.getMyInsurances()
                          .call({ from: this.defaultAccount })

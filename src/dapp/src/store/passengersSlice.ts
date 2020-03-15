@@ -37,4 +37,17 @@ export const fetchInsurances = (): AppThunk => async (dispatch: AppDispatch) => 
     }
 };
 
+export const payoutAll = (): AppThunk => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(asyncActionStarted({ name: 'Insurance Payout', showNotification: true }));
+    await flightSuretyService.payout();
+
+    dispatch(asyncActionSuccess());
+  } catch (e) {
+    console.error(e);
+    dispatch(asyncActionFailed(e));
+  }
+};
+
+
 export default passengersSlice.reducer;
