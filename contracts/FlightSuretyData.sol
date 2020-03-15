@@ -346,23 +346,23 @@ contract FlightSuretyPassengersData is FlightSuretyOraclesData, FlightSuretyPass
     function getAllInsurances(address insured)
         external
         view
-        returns (bytes32[] memory flight, uint256[] memory paidAmount, uint256[] memory status, uint256[] memory lastModifiedDate)
+        returns (bytes32[] memory flight, uint256[] memory paidAmount, uint256[] memory creditAmount, uint256[] memory status)
     {
         uint256 numOfInsurances = passengerInsurances[insured].length;
         bytes32[] memory flights = new bytes32[](numOfInsurances);
         uint256[] memory paidAmounts = new uint256[](numOfInsurances);
+        uint256[] memory creditAmounts = new uint256[](numOfInsurances);
         uint256[] memory statuses = new uint256[](numOfInsurances);
-        uint256[] memory lastModifiedDates = new uint256[](numOfInsurances);
 
         for (uint256 i = 0; i < numOfInsurances; i++) {
             Insurance storage insurance = insurances[passengerInsurances[insured][i]];
             flights[i] = insurance.flight;
             paidAmounts[i] = insurance.paidAmount;
+            creditAmounts[i] = insurance.creditAmount;
             statuses[i] = uint256(insurance.status);
-            lastModifiedDates[i] = insurance.lastModifiedDate;
         }
 
-        return (flights, paidAmounts, statuses, lastModifiedDates);
+        return (flights, paidAmounts, creditAmounts, statuses);
     }
 
     function setInsuranceForPayout(bytes32 flightKey, uint256 paidAmountPercentMultiplier) external onlyAuthorizedCaller {
