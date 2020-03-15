@@ -34,11 +34,11 @@ contract AirlineRole {
         return airlineAccounts.has(account);
     }
 
-    function assignAirlineRole(address account) public onlyAirline {
+    function assignAirlineRole(address account) internal onlyAirline {
         _addAirline(account);
     }
 
-    function renounceAirlineRole() public {
+    function renounceAirlineRole() internal {
         _removeAirline(msg.sender);
     }
 
@@ -81,7 +81,7 @@ contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
         _;
     }
 
-    function registerAirline(bytes32 name, address account) public onlyAirline whenFundingFeePaid {
+    function registerAirline(bytes32 name, address account) public onlyAirline whenFundingFeePaid whenNotPaused {
         if (flightSuretyAirlinesData.numberOfAirlines() < MIN_AIRLINES_NUMBER_FOR_CONSENSUS) {
             flightSuretyAirlinesData.addAirline(name, account);
             assignAirlineRole(account);
@@ -100,17 +100,17 @@ contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
         }
     }
 
-    function voteToAcceptRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+    function voteToAcceptRequest(address requester) public onlyAirline notVoted(requester) pending(requester) whenNotPaused {
         flightSuretyAirlinesData.voteToAcceptRequest(requester, msg.sender);
         tryFinalizeRequest(requester);
     }
 
-    function voteToRejectRequest(address requester) public onlyAirline notVoted(requester) pending(requester) {
+    function voteToRejectRequest(address requester) public onlyAirline notVoted(requester) pending(requester) whenNotPaused {
         flightSuretyAirlinesData.voteToRejectRequest(requester, msg.sender);
         tryFinalizeRequest(requester);
     }
 
-    function submitFundingFee() external payable onlyAirline {
+    function submitFundingFee() external payable onlyAirline whenNotPaused {
         require(msg.value == AIRLINE_FUNDING_FEE, "Incorrect funding fee.");
         require(!flightSuretyAirlinesData.isFundingFeePaid(msg.sender), "Funding fee already submitted.");
 

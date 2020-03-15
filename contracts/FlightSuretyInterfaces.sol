@@ -92,7 +92,7 @@ interface FlightSuretyPassengersDataContract {
     function getAllInsurances(address insured)
         external
         view
-        returns (bytes32[] memory flight, uint256[] memory paidAmount, uint256[] memory status, uint256[] memory lastModifiedDate);
+        returns (bytes32[] memory flight, uint256[] memory paidAmount, uint256[] memory creditAmount, uint256[] memory status);
 
     function setInsuranceForPayout(bytes32 flightKey, uint256 paidAmountPercentMultiplier) external;
 

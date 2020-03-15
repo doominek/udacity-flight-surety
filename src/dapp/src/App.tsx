@@ -13,6 +13,7 @@ import { ConnectionError } from './pages/ConnectionError';
 import { AsyncActionNotifier } from './components/AsyncActionNotifier';
 import { Requests } from './pages/airlines/Requests';
 import { Flights } from './pages/airlines/Flights';
+import { Insurances } from './pages/passengers/Insurances';
 
 function App() {
     const dispatch = useDispatch();
@@ -48,6 +49,9 @@ function App() {
 
         <Container>
             <Switch>
+                <Route exact path='/passengers/insurances'>
+                   <Insurances />
+                </Route>
                 <Route exact path='/airlines/list'>
                     <Airlines/>
                 </Route>

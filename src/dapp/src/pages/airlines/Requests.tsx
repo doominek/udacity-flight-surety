@@ -4,10 +4,10 @@ import { fetchRequests, voteToAccept, voteToReject } from '../../store/airlinesS
 import { RootState } from '../../store/reducers';
 import { Request, RequestStatus } from '../../types/airlines';
 import { Button, Icon, Label, List, Table } from 'semantic-ui-react';
-import { formatAccount } from '../../common/utils';
 import { AsyncAction } from '../../store/uiSlice';
 import { SemanticSIZES } from 'semantic-ui-react/dist/commonjs/generic';
 import * as _ from 'lodash';
+import { AccountAddress } from "../../components/AccountAddress";
 
 export const Requests = () => {
     const dispatch = useDispatch();
@@ -60,10 +60,10 @@ const FinalizedRequests: React.FC<{
         return <List.Item key={request.account}>
             <List.Icon color={color} name={icon} size='large' verticalAlign='middle'/>
             <List.Content>
-                <List.Header as='h4'><Label color='blue'>{request.name}</Label></List.Header>
+                <List.Header as='h3'>{request.name}</List.Header>
                 <List.Description as='a'>
-                    <p>{formatAccount(request.account)}</p>
-                    <VotesSummary size='mini' accepted={request.votesAccepted} rejected={request.votesRejected}/>
+                    <AccountAddress value={request.account}/>
+                    <VotesSummary size='medium' accepted={request.votesAccepted} rejected={request.votesRejected}/>
                 </List.Description>
             </List.Content>
         </List.Item>;
@@ -138,7 +138,7 @@ const PendingRequests: React.FC<{
                 {requests.map((request, idx) => (
                     <Table.Row key={idx}>
                         <Table.Cell>{request.name}</Table.Cell>
-                        <Table.Cell>{formatAccount(request.account)}</Table.Cell>
+                        <Table.Cell><AccountAddress value={request.account}/></Table.Cell>
                         <Table.Cell>
                             <VotesSummary accepted={request.votesAccepted} rejected={request.votesRejected}/>
                         </Table.Cell>
