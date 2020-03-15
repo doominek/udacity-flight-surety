@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import FlightSuretyApp from '../contracts/FlightSuretyApp.json';
 import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
 import { Airline, Request } from '../types/airlines';
+import { Flight, FlightStatus } from '../types/flights';
 import { Insurance } from '../types/insurance';
 
 declare global {
@@ -41,6 +42,21 @@ class FlightSuretyService {
 
     async getRequests(): Promise<Request[]> {
         return this.flightSuretyApp.methods.getAllRequests().call().then(result => this.parseRequests(result));
+    }
+
+    async getFlights(): Promise<Flight[]> {
+        return fetch('/api/flights')
+            .then(response => response.json());
+    }
+
+    async updateFlightStatus(flightKey: string, newStatus: FlightStatus) {
+        return fetch(`/api/flights/${flightKey}/update-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
     }
 
     async voteToAcceptRequest(requester: string) {
