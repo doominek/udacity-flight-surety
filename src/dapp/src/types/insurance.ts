@@ -7,6 +7,6 @@ export enum InsuranceStatus {
 export interface Insurance {
   flight: string;
   paidAmount: string;
+  creditAmount: string;
   status: InsuranceStatus;
-  lastModifiedDate: number
 }

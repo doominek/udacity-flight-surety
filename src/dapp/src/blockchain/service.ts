@@ -4,7 +4,6 @@ import * as _ from 'lodash';
 import FlightSuretyApp from '../contracts/FlightSuretyApp.json';
 import { FlightSuretyApp as FlightSuretyAppContract } from '../../../../generated/web3/contracts/FlightSuretyApp';
 import { Airline, Request } from '../types/airlines';
-import moment from 'moment';
 import { Insurance } from '../types/insurance';
 
 declare global {
@@ -58,22 +57,21 @@ class FlightSuretyService {
                          .then(result => this.parseInsurances(result));
     }
 
-    private parseInsurance(data: any[]): Insurance {
-        const [flight, paidAmount, lastModifiedDate, status] = data;
+    private parseInsurance(flight: string, paidAmount: string, creditAmount: string, status: string): Insurance {
         return {
             flight,
             paidAmount,
-            status: parseInt(status),
-            lastModifiedDate: parseInt(lastModifiedDate)
+            creditAmount,
+            status: parseInt(status)
         };
     }
 
-    private parseInsurances(data: { flight: string[]; paidAmount: string[]; status: string[]; lastModifiedDate: string[] }): Insurance[] {
+    private parseInsurances(data: { flight: string[], paidAmount: string[], status: string[], creditAmount: string[] }): Insurance[] {
         return _.range(data?.flight?.length)
-                .map(idx => this.parseInsurance([data.flight[idx],
+                .map(idx => this.parseInsurance(data.flight[idx],
                                                  data.paidAmount[idx],
-                                                 data.lastModifiedDate[idx],
-                                                 data.status[idx]]));
+                                                 data.creditAmount[idx],
+                                                 data.status[idx]));
     }
 
     private parseAirline(data: any[]): Airline {
