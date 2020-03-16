@@ -23,6 +23,11 @@ const passengersSlice = createSlice({
                                             },
                                             insurancePurchased(state, action: PayloadAction<Insurance>) {
                                                 state.insurances.push(action.payload);
+                                            },
+                                            insurancePaidOut(state) {
+                                                state.insurances
+                                                     .filter(i => i.status === InsuranceStatus.FOR_PAYOUT)
+                                                     .forEach(i => i.status = InsuranceStatus.REPAID);
                                             }
                                         }
                                     });
@@ -45,6 +50,7 @@ export const payoutAll = (): AppThunk => async (dispatch: AppDispatch) => {
         dispatch(asyncActionStarted({ name: 'Insurance Payout', showNotification: true }));
         await flightSuretyService.payout();
 
+        dispatch(passengersSlice.actions.insurancePaidOut());
         dispatch(asyncActionSuccess());
     } catch (e) {
         console.error(e);

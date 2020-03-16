@@ -6,8 +6,9 @@ export class Ether {
     return Ether.from(new BN(0));
   }
 
-  static from(amount: BN): Ether {
-    return new Ether(amount);
+  static from(amount: BN | string): Ether {
+    const bn = new BN(amount);
+    return new Ether(bn);
   }
 
   constructor(private amount: BN) {

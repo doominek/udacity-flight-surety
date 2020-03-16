@@ -5,10 +5,10 @@ import { fetchInsurances, payoutAll, purchaseInsurance } from '../../store/passe
 import { Insurance, InsuranceStatus } from '../../types/insurance';
 import { Ether } from '../../types/ether';
 import BN from 'bn.js';
-import { Button, Dropdown, Form, Header, Icon, Label, Modal } from 'semantic-ui-react';
+import { Button, Dropdown, Form, Header, Icon, Label, Modal, Table } from 'semantic-ui-react';
 import { fetchFlights } from '../../store/airlinesSlice';
 import _ from 'lodash';
-import { Flight } from '../../types/flights';
+import { Flight, FlightStatus } from '../../types/flights';
 import moment from 'moment';
 
 export const Insurances: React.FC = () => {
@@ -36,15 +36,58 @@ export const Insurances: React.FC = () => {
         return <div>Loading...</div>;
     }
 
-    return <div>
-        <PurchaseInsuranceModal flights={Object.values(flights)}
-                                purchasing={action?.name === 'Purchase Insurance' && action?.state === 'pending'}
-                                onConfirm={((flightKey, value) => dispatch(purchaseInsurance(flightKey, value)))}/>
-        <Payout available={payout.available}
-                amount={payout.amount}
-                pending={action?.name === 'Insurance Payout' && action?.state === 'pending'}
-                onPayout={() => dispatch(payoutAll())}/>
-    </div>;
+    return <Fragment>
+        <h3>My Insurances</h3>
+        <Table celled compact definition>
+            <Table.Header fullWidth>
+                <Table.Row>
+                    <Table.HeaderCell>Flight</Table.HeaderCell>
+                    <Table.HeaderCell>Airline</Table.HeaderCell>
+                    <Table.HeaderCell>Paid</Table.HeaderCell>
+                    <Table.HeaderCell>Status</Table.HeaderCell>
+                </Table.Row>
+            </Table.Header>
+
+            <Table.Body>
+                {insurances.map((insurance, idx) => {
+                    const flight = flights[insurance.flight];
+
+                    return (
+                        <Table.Row key={idx}>
+                            <Table.Cell>
+                                <Header as='h4' image>
+                                    <Header.Content>
+                                        {flight.code}
+                                        <Header.Subheader>{moment(flight.date).format('LLL')}</Header.Subheader>
+                                        <Header.Subheader>{FlightStatus[flight.status]}</Header.Subheader>
+                                    </Header.Content>
+                                </Header>
+                            </Table.Cell>
+                            <Table.Cell>{flight.airline.name}</Table.Cell>
+                            <Table.Cell textAlign='right'>{Ether.from(insurance.paidAmount).asEther()} ETH</Table.Cell>
+                            <Table.Cell>
+                                {InsuranceStatus[insurance.status]}
+                            </Table.Cell>
+                        </Table.Row>
+                    );
+                })}
+            </Table.Body>
+
+            <Table.Footer fullWidth>
+                <Table.Row>
+                    <Table.HeaderCell colSpan='4'>
+                        <PurchaseInsuranceModal flights={Object.values(flights)}
+                                                purchasing={action?.name === 'Purchase Insurance' && action?.state === 'pending'}
+                                                onConfirm={((flightKey, value) => dispatch(purchaseInsurance(flightKey, value)))}/>
+                        <Payout available={payout.available}
+                                amount={payout.amount}
+                                pending={action?.name === 'Insurance Payout' && action?.state === 'pending'}
+                                onPayout={() => dispatch(payoutAll())}/>
+                    </Table.HeaderCell>
+                </Table.Row>
+            </Table.Footer>
+        </Table>
+    </Fragment>;
 };
 
 const Payout: React.FC<{ available: boolean, amount: Ether, pending: boolean, onPayout: () => void }> =
@@ -53,7 +96,7 @@ const Payout: React.FC<{ available: boolean, amount: Ether, pending: boolean, on
             return <Fragment></Fragment>;
         }
 
-        return <Button as='div' labelPosition='right' onClick={onPayout}>
+        return <Button as='div' labelPosition='right' floated='right' onClick={onPayout}>
             <Button color='green'>
                 <Icon name='ethereum'/>
                 Payout
@@ -79,7 +122,7 @@ const PurchaseInsuranceModal: React.FC<{ flights: Flight[], onConfirm: (flightKe
         return <Modal trigger={<Button loading={purchasing}
                                        primary
                                        onClick={() => setOpen(true)}
-                                       disabled={purchasing}><Icon name='plus circle'/>Purchase</Button>}
+                                       disabled={purchasing}><Icon name='shopping cart'/>Purchase</Button>}
                       onClose={() => setOpen(false)}
                       open={open}>
             <Header icon='shopping cart' content={'Purchase New Insurance'}/>
