@@ -1,57 +1,117 @@
-import React, { Fragment, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/reducers";
-import { fetchInsurances, payoutAll } from "../../store/passengersSlice";
-import { Insurance, InsuranceStatus } from "../../types/insurance";
-import { Ether } from "../../types/ether";
-import BN from "bn.js";
-import { Button, Icon, Label } from "semantic-ui-react";
+import React, { Fragment, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/reducers';
+import { fetchInsurances, payoutAll, purchaseInsurance } from '../../store/passengersSlice';
+import { Insurance, InsuranceStatus } from '../../types/insurance';
+import { Ether } from '../../types/ether';
+import BN from 'bn.js';
+import { Button, Dropdown, Form, Header, Icon, Label, Modal } from 'semantic-ui-react';
+import { fetchFlights } from '../../store/airlinesSlice';
+import _ from 'lodash';
+import { Flight } from '../../types/flights';
+import moment from 'moment';
 
 export const Insurances: React.FC = () => {
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(fetchInsurances());
-  }, [dispatch]);
+    useEffect(() => {
+        dispatch(fetchInsurances());
+        dispatch(fetchFlights());
+    }, [ dispatch ]);
 
-  const state = useSelector((state: RootState) => ({
-    action: state.ui.action,
-    insurances: state.passengers.insurances,
-    account: state.blockchain.account,
-    payout: {
-      available: state.passengers.insurances.some(i => i.status === InsuranceStatus.FOR_PAYOUT),
-      amount: state.passengers.insurances
-                   .filter(ins => ins.status === InsuranceStatus.FOR_PAYOUT)
-                   .reduce((sum: Ether, ins: Insurance) => sum.add(Ether.from(new BN(ins.creditAmount))), Ether.ZERO)
+    const { action, flights, payout, insurances } = useSelector((state: RootState) => ({
+        action: state.ui.action,
+        insurances: state.passengers.insurances,
+        account: state.blockchain.account,
+        flights: _.keyBy(state.airlines.flights, 'key'),
+        payout: {
+            available: state.passengers.insurances.some(i => i.status === InsuranceStatus.FOR_PAYOUT),
+            amount: state.passengers.insurances
+                         .filter(ins => ins.status === InsuranceStatus.FOR_PAYOUT)
+                         .reduce((sum: Ether, ins: Insurance) => sum.add(Ether.from(new BN(ins.creditAmount))), Ether.ZERO)
+        }
+    }));
+
+    if (!insurances && !flights) {
+        return <div>Loading...</div>;
     }
-  }));
 
-  if (!state) {
-    return <div>Loading...</div>;
-  }
-
-  return <div>
-    <Payout available={state.payout.available}
-            amount={state.payout.amount}
-            pending={state.action?.state === "pending"}
-            onPayout={() => dispatch(payoutAll())}/>
-
-  </div>;
+    return <div>
+        <PurchaseInsuranceModal flights={Object.values(flights)}
+                                purchasing={action?.name === 'Purchase Insurance' && action?.state === 'pending'}
+                                onConfirm={((flightKey, value) => dispatch(purchaseInsurance(flightKey, value)))}/>
+        <Payout available={payout.available}
+                amount={payout.amount}
+                pending={action?.name === 'Insurance Payout' && action?.state === 'pending'}
+                onPayout={() => dispatch(payoutAll())}/>
+    </div>;
 };
 
 const Payout: React.FC<{ available: boolean, amount: Ether, pending: boolean, onPayout: () => void }> =
-  ({ available, amount, pending, onPayout }) => {
-    if (!available) {
-      return <Fragment></Fragment>;
-    }
+    ({ available, amount, pending, onPayout }) => {
+        if (!available) {
+            return <Fragment></Fragment>;
+        }
 
-    return <Button as='div' labelPosition='right' onClick={onPayout}>
-      <Button color='green'>
-        <Icon name='ethereum'/>
-        Payout
-      </Button>
-      <Label as='a' basic color='green' pointing='left'>
-        {amount.asEther()} ETH
-      </Label>
-    </Button>;
-  };
+        return <Button as='div' labelPosition='right' onClick={onPayout}>
+            <Button color='green'>
+                <Icon name='ethereum'/>
+                Payout
+            </Button>
+            <Label as='a' basic color='green' pointing='left'>
+                {amount.asEther()} ETH
+            </Label>
+        </Button>;
+    };
+
+const PurchaseInsuranceModal: React.FC<{ flights: Flight[], onConfirm: (flightKey: string, value: string) => void, purchasing: boolean }> =
+    ({ flights, onConfirm, purchasing }) => {
+        const [ open, setOpen ] = useState(false);
+        const [ flight, setFlight ] = useState(_.first(flights)?.key);
+        const [ value, setValue ] = useState('500000000000000000');
+
+        const flightsOptions = flights.map(f => ({
+            key: f.key,
+            value: f.key,
+            text: `${f.code} - ${f.airline.name}, ${moment(f.date).format('LLL')}`
+        }));
+
+        return <Modal trigger={<Button loading={purchasing}
+                                       primary
+                                       onClick={() => setOpen(true)}
+                                       disabled={purchasing}><Icon name='plus circle'/>Purchase</Button>}
+                      onClose={() => setOpen(false)}
+                      open={open}>
+            <Header icon='shopping cart' content={'Purchase New Insurance'}/>
+            <Modal.Content>
+                <Form>
+                    <Form.Field>
+                        <label>Flight</label>
+                        <Dropdown
+                            placeholder='Select Flight'
+                            selection
+                            defaultValue={flight}
+                            options={flightsOptions}
+                            // @ts-ignore
+                            onChange={(e, { value }) => setFlight(value)}
+                        />
+                    </Form.Field>
+                    <Form.Field>
+                        <label>Value</label>
+                        <input type='number' value={value} onChange={(e) => setValue(e.target.value)}/>
+                    </Form.Field>
+                </Form>
+            </Modal.Content>
+            <Modal.Actions>
+                <Button color='red' onClick={() => setOpen(false)}>
+                    <Icon name='x'/> Cancel
+                </Button>
+                <Button color='green' disabled={!flight} onClick={() => {
+                    onConfirm(flight!, value);
+                    setOpen(false);
+                }}>
+                    <Icon name='checkmark'/> Confirm
+                </Button>
+            </Modal.Actions>
+        </Modal>
+    };

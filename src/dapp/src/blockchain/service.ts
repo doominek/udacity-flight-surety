@@ -126,6 +126,10 @@ class FlightSuretyService {
                     status: parseInt(requestsData._status[idx])
                 }));
     }
+
+    async purchaseInsurance(flightKey: string, value: string) {
+        await this.flightSuretyApp.methods.purchaseInsurance(flightKey).send({ from: this.defaultAccount, value });
+    }
 }
 
 class FlightSuretyServiceFactory {

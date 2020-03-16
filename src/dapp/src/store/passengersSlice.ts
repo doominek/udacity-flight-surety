@@ -4,7 +4,7 @@ import { AppDispatch, AppThunk } from './config';
 import { flightSuretyService } from '../blockchain/service';
 
 import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
-import { Insurance } from "../types/insurance";
+import { Insurance, InsuranceStatus } from '../types/insurance';
 
 export interface PassengersState {
     insurances: Insurance[];
@@ -15,14 +15,17 @@ const initialState: PassengersState = {
 };
 
 const passengersSlice = createSlice({
-                                      name: 'passengers',
-                                      initialState,
-                                      reducers: {
-                                          insurancesLoaded(state, action: PayloadAction<Insurance[]>) {
-                                              state.insurances = action.payload;
-                                          }
-                                      }
-                                  });
+                                        name: 'passengers',
+                                        initialState,
+                                        reducers: {
+                                            insurancesLoaded(state, action: PayloadAction<Insurance[]>) {
+                                                state.insurances = action.payload;
+                                            },
+                                            insurancePurchased(state, action: PayloadAction<Insurance>) {
+                                                state.insurances.push(action.payload);
+                                            }
+                                        }
+                                    });
 
 export const fetchInsurances = (): AppThunk => async (dispatch: AppDispatch) => {
     try {
@@ -38,15 +41,33 @@ export const fetchInsurances = (): AppThunk => async (dispatch: AppDispatch) => 
 };
 
 export const payoutAll = (): AppThunk => async (dispatch: AppDispatch) => {
-  try {
-    dispatch(asyncActionStarted({ name: 'Insurance Payout', showNotification: true }));
-    await flightSuretyService.payout();
+    try {
+        dispatch(asyncActionStarted({ name: 'Insurance Payout', showNotification: true }));
+        await flightSuretyService.payout();
 
-    dispatch(asyncActionSuccess());
-  } catch (e) {
-    console.error(e);
-    dispatch(asyncActionFailed(e));
-  }
+        dispatch(asyncActionSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const purchaseInsurance = (flightKey: string, value: string): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({ name: 'Purchase Insurance', showNotification: true }));
+        await flightSuretyService.purchaseInsurance(flightKey, value);
+
+        dispatch(passengersSlice.actions.insurancePurchased({
+                                                                paidAmount: value,
+                                                                flight: flightKey,
+                                                                status: InsuranceStatus.PAID,
+                                                                creditAmount: ''
+                                                            }));
+        dispatch(asyncActionSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
 };
 
 
