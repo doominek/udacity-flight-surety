@@ -14,6 +14,7 @@ import { AsyncActionNotifier } from './components/AsyncActionNotifier';
 import { Requests } from './pages/airlines/Requests';
 import { Flights } from './pages/airlines/Flights';
 import { Insurances } from './pages/passengers/Insurances';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
     const dispatch = useDispatch();
@@ -49,21 +50,21 @@ function App() {
 
         <Container>
             <Switch>
-                <Route exact path='/passengers/insurances'>
-                   <Insurances />
-                </Route>
-                <Route exact path='/airlines/list'>
+                <ProtectedRoute exact path='/passengers/insurances' allowedRole='passenger'>
+                    <Insurances/>
+                </ProtectedRoute>
+                <ProtectedRoute exact path='/airlines/list' allowedRole='airline'>
                     <Airlines/>
-                </Route>
-                <Route exact path='/airlines/add'>
+                </ProtectedRoute>
+                <ProtectedRoute exact path='/airlines/add' allowedRole='airline'>
                     <AddAirline/>
-                </Route>
-                <Route exact path='/airlines/requests'>
+                </ProtectedRoute>
+                <ProtectedRoute exact path='/airlines/requests' allowedRole='airline'>
                     <Requests/>
-                </Route>
-                <Route exact path='/airlines/flights'>
+                </ProtectedRoute>
+                <ProtectedRoute exact path='/airlines/flights' allowedRole='airline'>
                     <Flights/>
-                </Route>
+                </ProtectedRoute>
                 <Route path="/">
                     <Home/>
                 </Route>

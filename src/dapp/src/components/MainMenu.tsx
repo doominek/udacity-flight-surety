@@ -2,11 +2,15 @@ import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { Icon, Menu, MenuItemProps } from 'semantic-ui-react';
 import { AccountInfo } from './AccountInfo';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/reducers';
 
 
 export const MainMenu: React.FC = () => {
     const history = useHistory();
     const location = useLocation();
+    const { role } = useSelector(
+        (state: RootState) => ({ role: state.blockchain.role }));
 
     const handleItemClick = (e: any, { name }: MenuItemProps) => {
         if (name) {
@@ -49,7 +53,7 @@ export const MainMenu: React.FC = () => {
         </Menu.Item>
 
         {
-            passengersMainRoutes.map((route, idx) => (
+            role === 'passenger' && passengersMainRoutes.map((route, idx) => (
                 <Menu.Item
                     key={idx}
                     name={route.path}
@@ -61,7 +65,7 @@ export const MainMenu: React.FC = () => {
         }
 
         {
-            airlineMainRoutes.map((route, idx) => (
+            role === 'airline' && airlineMainRoutes.map((route, idx) => (
                 <Menu.Item
                     key={idx}
                     name={route.path}
