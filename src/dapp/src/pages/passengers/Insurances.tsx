@@ -49,28 +49,30 @@ export const Insurances: React.FC = () => {
             </Table.Header>
 
             <Table.Body>
-                {insurances.map((insurance, idx) => {
-                    const flight = flights[insurance.flight];
+                {insurances.filter(insurance => flights[insurance.flight])
+                           .map((insurance, idx) => {
+                               const flight = flights[insurance.flight];
 
-                    return (
-                        <Table.Row key={idx}>
-                            <Table.Cell>
-                                <Header as='h4' image>
-                                    <Header.Content>
-                                        {flight.code}
-                                        <Header.Subheader>{moment(flight.date).format('LLL')}</Header.Subheader>
-                                        <Header.Subheader>{FlightStatus[flight.status]}</Header.Subheader>
-                                    </Header.Content>
-                                </Header>
-                            </Table.Cell>
-                            <Table.Cell>{flight.airline.name}</Table.Cell>
-                            <Table.Cell textAlign='right'>{Ether.from(insurance.paidAmount).asEther()} ETH</Table.Cell>
-                            <Table.Cell>
-                                {InsuranceStatus[insurance.status]}
-                            </Table.Cell>
-                        </Table.Row>
-                    );
-                })}
+                               return (
+                                   <Table.Row key={idx}>
+                                       <Table.Cell>
+                                           <Header as='h4' image>
+                                               <Header.Content>
+                                                   {flight.code}
+                                                   <Header.Subheader>{moment(flight.date).format('LLL')}</Header.Subheader>
+                                                   <Header.Subheader>{FlightStatus[flight.status]}</Header.Subheader>
+                                               </Header.Content>
+                                           </Header>
+                                       </Table.Cell>
+                                       <Table.Cell>{flight.airline.name}</Table.Cell>
+                                       <Table.Cell
+                                           textAlign='right'>{Ether.from(insurance.paidAmount).asEther()} ETH</Table.Cell>
+                                       <Table.Cell>
+                                           {InsuranceStatus[insurance.status]}
+                                       </Table.Cell>
+                                   </Table.Row>
+                               );
+                           })}
             </Table.Body>
 
             <Table.Footer fullWidth>

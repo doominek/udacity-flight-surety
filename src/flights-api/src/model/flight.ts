@@ -1,6 +1,8 @@
 import Web3Utils from 'web3-utils';
 import moment from 'moment';
 
+const Web3EthAbi = require('web3-eth-abi')
+
 export enum FlightStatus {
     UNKNOWN = 0,
     ON_TIME = 10,
@@ -23,6 +25,11 @@ export class Flight {
                 public readonly code: string,
                 public readonly date: moment.Moment,
                 public status: FlightStatus) {
-        this.key = Web3Utils.soliditySha3(this.airline.account, this.code, this.date.unix());
+        this.key = flightKey(airline.account, code, date.unix());
     }
 }
+
+export const flightKey = (airline: string, code: string, date: number) => {
+    return Web3Utils.keccak256(Web3EthAbi.encodeParameters([ 'address', 'string', 'uint256' ],
+                                                           [ airline, code, date ]));
+};
