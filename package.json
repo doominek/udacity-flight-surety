@@ -7,7 +7,10 @@
     "generate": "truffle compile && typechain --target truffle './build/contracts/*.json' --outDir './generated/truffle/contracts' && typechain --target web3-v1 './build/contracts/*.json' --outDir './generated/web3/contracts'",
     "ganache": "ganache-cli --accounts 40 --defaultBalanceEther 200 --deterministic --mnemonic \"above sadness level believe palm various soda clutch quiz early conduct connect\"",
     "prettier:sol": "prettier --write **/*.sol",
-    "truffle:setup-dev": "truffle exec scripts/setup-dev-env.js"
+    "truffle:dev:migrate": "truffle migrate --network development --reset",
+    "truffle:dev:setup": "truffle exec scripts/setup-dev-env.js",
+    "dapp:dev:setup": "mkdir -p src/dapp/src/contracts && cp build/contracts/FlightSuretyApp.json src/dapp/src/contracts",
+    "deploy:dev": "npm run truffle:dev:migrate && npm run generate && npm run truffle:dev:setup && npm run dapp:dev:setup"
   },
   "author": "",
   "license": "ISC",

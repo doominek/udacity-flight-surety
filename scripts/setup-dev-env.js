@@ -18,8 +18,11 @@ module.exports = async function(callback) {
         await contract.registerAirline(web3.utils.utf8ToHex('PLL Lot'), accounts[4], { from: accounts[1] });
         await contract.registerAirline(web3.utils.utf8ToHex('Air Canada'), accounts[5], { from: accounts[1] });
 
+        console.log('Setting up test data completed successfully!');
+
         callback();
     } catch (e) {
+        console.error('Setting up test data failed!');
         callback(e);
     }
 }
