@@ -2,6 +2,6 @@ node_modules
 generated
 build
 .idea
-src/dapp/config.json
+src/dapp/src/contracts
 
 **/node_modules
