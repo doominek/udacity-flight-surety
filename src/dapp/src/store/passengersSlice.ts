@@ -5,6 +5,7 @@ import { flightSuretyService } from '../blockchain/service';
 
 import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
 import { Insurance, InsuranceStatus } from '../types/insurance';
+import { Flight } from '../types/flights';
 
 export interface PassengersState {
     insurances: Insurance[];
@@ -69,6 +70,24 @@ export const purchaseInsurance = (flightKey: string, value: string): AppThunk =>
                                                                 status: InsuranceStatus.PAID,
                                                                 creditAmount: ''
                                                             }));
+        dispatch(asyncActionSuccess());
+    } catch (e) {
+        console.error(e);
+        dispatch(asyncActionFailed(e));
+    }
+};
+
+export const fetchFlightStatus = (flight: Flight): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        dispatch(asyncActionStarted({
+                                        name: 'Sending request to fetch flight status',
+                                        context: {
+                                            flight: flight.key
+                                        },
+                                        showNotification: true
+                                    }));
+        await flightSuretyService.fetchFlightStatus(flight);
+
         dispatch(asyncActionSuccess());
     } catch (e) {
         console.error(e);

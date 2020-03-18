@@ -1,14 +1,14 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/reducers';
-import { fetchInsurances, payoutAll, purchaseInsurance } from '../../store/passengersSlice';
+import { fetchFlightStatus, fetchInsurances, payoutAll, purchaseInsurance } from '../../store/passengersSlice';
 import { Insurance, InsuranceStatus } from '../../types/insurance';
 import { Ether } from '../../types/ether';
 import BN from 'bn.js';
 import { Button, Dropdown, Form, Header, Icon, Label, Modal, Table } from 'semantic-ui-react';
 import { fetchFlights } from '../../store/airlinesSlice';
 import _ from 'lodash';
-import { Flight, FlightStatus } from '../../types/flights';
+import { Flight } from '../../types/flights';
 import moment from 'moment';
 
 export const Insurances: React.FC = () => {
@@ -32,6 +32,12 @@ export const Insurances: React.FC = () => {
         }
     }));
 
+    const isStatusCheckInProgress = (flightKey: string): boolean => {
+        return action?.state === 'pending'
+            && action?.name === 'Sending request to fetch flight status'
+            && action?.context.flight === flightKey;
+    };
+
     if (!insurances && !flights) {
         return <div>Loading...</div>;
     }
@@ -45,6 +51,7 @@ export const Insurances: React.FC = () => {
                     <Table.HeaderCell>Airline</Table.HeaderCell>
                     <Table.HeaderCell>Paid</Table.HeaderCell>
                     <Table.HeaderCell>Status</Table.HeaderCell>
+                    <Table.HeaderCell>Actions</Table.HeaderCell>
                 </Table.Row>
             </Table.Header>
 
@@ -60,7 +67,6 @@ export const Insurances: React.FC = () => {
                                                <Header.Content>
                                                    {flight.code}
                                                    <Header.Subheader>{moment(flight.date).format('LLL')}</Header.Subheader>
-                                                   <Header.Subheader>{FlightStatus[flight.status]}</Header.Subheader>
                                                </Header.Content>
                                            </Header>
                                        </Table.Cell>
@@ -70,6 +76,12 @@ export const Insurances: React.FC = () => {
                                        <Table.Cell>
                                            {InsuranceStatus[insurance.status]}
                                        </Table.Cell>
+                                       <Table.Cell>
+                                           <Button size='tiny'
+                                                   primary
+                                                   loading={isStatusCheckInProgress(flight.key)}
+                                                   onClick={() => dispatch(fetchFlightStatus(flight))}>Check</Button>
+                                       </Table.Cell>
                                    </Table.Row>
                                );
                            })}
@@ -77,7 +89,7 @@ export const Insurances: React.FC = () => {
 
             <Table.Footer fullWidth>
                 <Table.Row>
-                    <Table.HeaderCell colSpan='4'>
+                    <Table.HeaderCell colSpan='5'>
                         <PurchaseInsuranceModal flights={Object.values(flights)}
                                                 purchasing={action?.name === 'Purchase Insurance' && action?.state === 'pending'}
                                                 onConfirm={((flightKey, value) => dispatch(purchaseInsurance(flightKey, value)))}/>

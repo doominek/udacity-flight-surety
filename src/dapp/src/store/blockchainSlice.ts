@@ -38,7 +38,7 @@ export const initialize = (): AppThunk => async (dispatch: AppDispatch) => {
         const isAirline = await flightSuretyService.isAirline();
 
         dispatch(blockchainSlice.actions.initializeSuccess({
-                                                               account: flightSuretyService.defaultAccount,
+                                                               account: flightSuretyService.currentAccount,
                                                                role: isAirline ? 'airline' : 'passenger'
                                                            }));
     } catch (e) {
