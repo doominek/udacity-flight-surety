@@ -90,6 +90,10 @@ const ChangeFlightStatusModal: React.FC<{ onConfirm: (status: FlightStatus) => v
         const [ open, setOpen ] = useState(false);
         const [ status, setStatus ] = useState(flight.status);
 
+        if (flight.status !== FlightStatus.UNKNOWN) {
+            return <Fragment></Fragment>;
+        }
+
         return <Modal trigger={<Button size='tiny'
                                        loading={updating}
                                        primary

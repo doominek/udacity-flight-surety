@@ -78,10 +78,12 @@ export const Insurances: React.FC = () => {
                                            {InsuranceStatus[insurance.status]}
                                        </Table.Cell>
                                        <Table.Cell>
-                                           <Button size='tiny'
-                                                   primary
-                                                   loading={isStatusCheckInProgress(flight.key)}
-                                                   onClick={() => dispatch(fetchFlightStatus(flight))}>Check</Button>
+                                           {
+                                               insurance.status === InsuranceStatus.PAID && <Button size='tiny'
+                                                                                                    primary
+                                                                                                    loading={isStatusCheckInProgress(flight.key)}
+                                                                                                    onClick={() => dispatch(fetchFlightStatus(flight))}>Check</Button>
+                                           }
                                        </Table.Cell>
                                    </Table.Row>
                                );
@@ -102,7 +104,7 @@ export const Insurances: React.FC = () => {
                 </Table.Row>
             </Table.Footer>
         </Table>
-        <FlightStatusChangeNotifier />
+        <FlightStatusChangeNotifier/>
     </Fragment>;
 };
 
