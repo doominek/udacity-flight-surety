@@ -5,6 +5,7 @@ import { Flight, FlightStatus } from '../types/flights';
 import { Insurance } from '../types/insurance';
 import * as _ from 'lodash';
 import moment from 'moment';
+import { ContractEventEmitter } from '../../../../generated/web3/contracts/types';
 
 export class FlightSuretyService {
     constructor(private web3: Web3, private accounts: string[], private flightSuretyApp: FlightSuretyAppContract) {
@@ -72,6 +73,10 @@ export class FlightSuretyService {
     async fetchFlightStatus(flight: Flight) {
         await this.flightSuretyApp.methods.fetchFlightStatus(flight.airline.account, flight.code, moment(flight.date).unix())
                   .send({ from: this.currentAccount });
+    }
+
+    flightStatusInfoEvents(): ContractEventEmitter<any> {
+        return this.flightSuretyApp.events.FlightStatusInfo({ fromBlock: 'latest' });
     }
 
     private parseInsurance(flight: string, paidAmount: string, creditAmount: string, status: string): Insurance {

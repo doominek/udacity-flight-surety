@@ -5,7 +5,8 @@ import { flightSuretyService } from '../blockchain/service';
 
 import { asyncActionFailed, asyncActionStarted, asyncActionSuccess } from './uiSlice';
 import { Insurance, InsuranceStatus } from '../types/insurance';
-import { Flight } from '../types/flights';
+import { Flight, FlightStatus } from '../types/flights';
+import { ContractEventEmitter } from '../../../../generated/web3/contracts/types';
 
 export interface PassengersState {
     insurances: Insurance[];
@@ -92,6 +93,34 @@ export const fetchFlightStatus = (flight: Flight): AppThunk => async (dispatch: 
     } catch (e) {
         console.error(e);
         dispatch(asyncActionFailed(e));
+    }
+};
+
+let flightStatusEventEmitter: ContractEventEmitter<any>;
+
+export const subscribeToFlightStatusInfoEvent = (callback: (flight: string,
+                                                            status: FlightStatus) => void): AppThunk =>
+    async (dispatch: AppDispatch) => {
+        try {
+            flightStatusEventEmitter = flightSuretyService.flightStatusInfoEvents();
+            flightStatusEventEmitter.on('data', event => {
+                const status = parseInt(event.returnValues.status, 10);
+                callback(event.returnValues.flight, status);
+
+                if (status === FlightStatus.LATE_AIRLINE) {
+                    dispatch(fetchInsurances());
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+export const unsubscribeFromFlightStatusInfoEvent = (): AppThunk => async (dispatch: AppDispatch) => {
+    try {
+        flightStatusEventEmitter.removeAllListeners();
+    } catch (e) {
+        console.error(e);
     }
 };
 

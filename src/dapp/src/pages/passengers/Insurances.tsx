@@ -10,6 +10,7 @@ import { fetchFlights } from '../../store/airlinesSlice';
 import _ from 'lodash';
 import { Flight } from '../../types/flights';
 import moment from 'moment';
+import { FlightStatusChangeNotifier } from '../../components/FlightStatusChangeNotifier';
 
 export const Insurances: React.FC = () => {
     const dispatch = useDispatch();
@@ -101,6 +102,7 @@ export const Insurances: React.FC = () => {
                 </Table.Row>
             </Table.Footer>
         </Table>
+        <FlightStatusChangeNotifier />
     </Fragment>;
 };
 
