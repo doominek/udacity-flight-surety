@@ -4,7 +4,7 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import * as _ from 'lodash';
 import { FlightStatusOracle, FlightStatusOracles } from './flight-status-oracle';
-import { flightEvents, flightsByKey } from '../routes/flights';
+import { flightsByKey } from '../routes/flights';
 import { flightKey, FlightStatus } from '../model/flight';
 
 
@@ -81,21 +81,10 @@ const subscribeToOracleRequestEvents = async (contract: FlightSuretyAppContract)
                                   });
 };
 
-function subscribeToFlightUpdates(contract: FlightSuretyAppContract, accounts: string[]) {
-    flightEvents.on('statusUpdate', ({ flight }) => {
-        contract.methods
-                .fetchFlightStatus(flight.airline.account,
-                                   flight.code,
-                                   flight.date.unix())
-                .send({ from: accounts[0] });
-    });
-};
-
 const setupOracles = async () => {
     const connection = await connect();
     await registerOracles(connection.contract, connection.accounts);
     await subscribeToOracleRequestEvents(connection.contract);
-    subscribeToFlightUpdates(connection.contract, connection.accounts);
 };
 
 export {

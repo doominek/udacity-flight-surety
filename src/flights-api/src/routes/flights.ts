@@ -2,10 +2,8 @@ import { Router } from 'express';
 import moment from 'moment';
 import { Airline, Flight, FlightStatus } from '../model/flight';
 import _ from 'lodash';
-import { EventEmitter }  from 'events';
 
 const router = Router();
-export const flightEvents = new EventEmitter();
 
 const airlines: { [key: string]: Airline } = {
     Lufthansa: new Airline('Lufthansa', '0x486aE5cb7a2C8Ab030180161BeB49645218F221c'),
@@ -42,7 +40,6 @@ router.post('/flights/:flightKey/update-status', (req, res, next) => {
 
     try {
         flight.status = req.body.status;
-        flightEvents.emit('statusUpdate', { flight });
 
         res.send(flight);
     } catch (e) {
