@@ -1,5 +1,9 @@
 # Flight Surety
 
+Contains contract and apps for the FlightSurety project.
+
+For dApp showcase please go [here](./src/dapp/docs/DOCUMENTATION.md)
+
 ## Running the project
 
 The easiest way to run the project is to use the scripts provided in [package.json](package.json) file
@@ -25,7 +29,7 @@ Scripts description:
   * copies contract's deployment metadata to be available by dapp web app
   * prepopulates environment with some data, details [here](#test-data-setup) 
 * __server__ - starts a NodeJS express app that runs Oracles and servers simple, REST-based API for flights management
-* __dapp__ - starts React web app that uses FlightSuretyApp contract
+* __dapp__ - starts React web app that uses FlightSuretyApp contract, docs for this app can be found [here](src/dapp/docs/DOCUMENTATION.md)
 
 ## FlightSuretyApp Contract
 
