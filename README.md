@@ -6,6 +6,7 @@ The easiest way to run the project is to use the scripts provided in [package.js
 in the following order:
 ```bash
 npm run ganache
+npm run test
 npm run redeploy
 npm run server
 npm run dapp
@@ -17,6 +18,7 @@ Scripts description:
   * initial balance is increased to 200 ETH
   * mnemonic to generate accounts is set to: `above sadness level believe palm various soda clutch quiz early conduct connect`
     which can be used to import all the necessary accounts to MetaMask
+* __test__ - runs test using Truffle
 * __redeploy__ - responsible for preparing dev environment for work:
   * deploys contract to ganache
   * generates Typescript's typings for contracts
@@ -24,6 +26,7 @@ Scripts description:
   * prepopulates environment with some data, details [here](#test-data-setup) 
 * __server__ - starts a NodeJS express app that runs Oracles and servers simple, REST-based API for flights management
 * __dapp__ - starts React web app that uses FlightSuretyApp contract
+
 
 ### Test Data Setup
 
