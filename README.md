@@ -2,7 +2,7 @@
 
 Contains contract and apps for the FlightSurety project.
 
-For dApp showcase please go [here](./src/dapp/docs/DOCUMENTATION.md)
+For dApp showcase please go [here](./src/dapp/docs/DOCUMENTATION.md).
 
 ## Running the project
 
@@ -69,7 +69,7 @@ that prepopulates environment with the following additional airlines:
 Account with index 2 (_account[2]_) can be used for testing passengers functionality 
 
 By importing wallet in MetaMask from mnemonic `above sadness level believe palm various soda clutch quiz early conduct connect` and creating
-new accounts we can easily use the above accounts while testing Dapp. 
+new accounts we can easily use the above accounts while testing dApp. 
 
 
 ## Libraries used
