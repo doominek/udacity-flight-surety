@@ -44,3 +44,30 @@ Account with index 2 (_account[2]_) can be used for testing passengers functiona
 
 By importing wallet in MetaMask from mnemonic `above sadness level believe palm various soda clutch quiz early conduct connect` and creating
 new accounts we can easily use the above accounts while testing Dapp. 
+
+
+## Libraries used
+
+Language used for development of Truffle tests, dapp and server apps is __Typescript__ 
+(to make things more interesting with that and for better developer experience... however not exactly easier as I soon found out).
+
+This project uses the following tools and libraries:
+* Contract
+  * Solidity - 0.5.16
+  * OpenZeppelin - 2.5.0, used to provide the following utilities:
+    * Ownable - used for managing the owner of the contract
+    * SafeMath - for math operations on uint256 data type
+    * Pausable - for providing management of operational status
+    * Roles - for providing management of airline roles
+  * Truffle - 5.1.14 (tests and deployment)
+  * [Typechain](https://github.com/ethereum-ts/TypeChain) - used to generate typings for contracts
+  * web3 - 1.2.6, used to interact with ethereum network
+* Server - `src/flights-api`
+  * express - 4.17.1, used to host Oracles and provide REST API for flights management
+* Dapp - `src/dapp`
+  * react - 16.12.0, used to create SPA that interacts with FlightSuretyApp contract, generate with `create-react-app` starter 
+  * react-router - for managing routing in the application
+  * react-redux - for managing applications state (dev tools are enabled so store state can be inspected in any moment)
+  * [react-semanti-ui](https://react.semantic-ui.com/) - library with ready components to make application look better
+  * [react-toast-notifications](https://github.com/jossmac/react-toast-notifications) - for displaying notifications from the user's actions
+  * lodash, moment.js - utility libraries 
