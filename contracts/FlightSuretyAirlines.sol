@@ -55,7 +55,7 @@ contract AirlineRole {
 
 
 contract FlightSuretyAirlines is FlightSuretyAppBase, AirlineRole {
-    uint256 public constant AIRLINE_FUNDING_FEE = 5 ether;
+    uint256 public constant AIRLINE_FUNDING_FEE = 10 ether;
     uint8 private constant MIN_AIRLINES_NUMBER_FOR_CONSENSUS = 4;
     uint8 private constant MIN_CONSENSUS_PERCENTAGE = 50;
 
