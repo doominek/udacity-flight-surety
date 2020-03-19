@@ -27,6 +27,28 @@ Scripts description:
 * __server__ - starts a NodeJS express app that runs Oracles and servers simple, REST-based API for flights management
 * __dapp__ - starts React web app that uses FlightSuretyApp contract
 
+## FlightSuretyApp Contract
+
+FlightSuretyApp contract is divided into two parts that contain logic and data. 
+Each part is also divided into sub-parts that are responsible for managing Airlines, Oracles and Passengers.
+
+The hierarchy is as follows:
+```
+Ownable, Pausable    AirlineRole
+        ^               ^     
+        |               | 
+
+        FlightSuretyAirlines  ---------> FlightSuretyAirlinesData
+               ^
+               |
+       FlightSuretyPassengers ---------> FlightSuretyPassengerData 
+               ^
+               |
+        FlightSuretyOracles   ---------> FligthSuretyOraclesData
+               ^
+               |
+         FlightSuretyApp      ---------> FlightSuretyData     
+```
 
 ### Test Data Setup
 
